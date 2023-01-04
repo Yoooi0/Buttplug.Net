@@ -10,7 +10,7 @@ public class ButtplugClient : IAsyncDisposable
     private CancellationTokenSource? _cancellationSource;
     private Task? _task;
 
-    private readonly IButtplugJsonMessageConverter _converter;
+    private readonly IButtplugMessageJsonConverter _converter;
     private readonly ConcurrentDictionary<uint, ButtplugDevice> _devices;
 
     public string Name { get; }
@@ -21,7 +21,7 @@ public class ButtplugClient : IAsyncDisposable
     public event EventHandler? ScanningFinished;
     public event EventHandler? Disconnected;
 
-    public ButtplugClient(string name, IButtplugJsonMessageConverter converter)
+    public ButtplugClient(string name, IButtplugMessageJsonConverter converter)
     {
         Name = name;
         _converter = converter;

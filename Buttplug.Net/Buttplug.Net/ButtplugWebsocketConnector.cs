@@ -9,14 +9,14 @@ internal class ButtplugWebsocketConnector : IButtplugConnector
     private readonly Channel<IButtplugMessage> _sendMessageChannel;
     private readonly Channel<IButtplugMessage> _receiveMessageChannel;
     private readonly ButtplugMessageTaskManager _taskManager;
-    private readonly IButtplugJsonMessageConverter _converter;
+    private readonly IButtplugMessageJsonConverter _converter;
 
     private CancellationTokenSource? _cancellationSource;
     private Task? _task;
 
     public event EventHandler<Exception>? InvalidMessageReceived;
 
-    public ButtplugWebsocketConnector(IButtplugJsonMessageConverter converter)
+    public ButtplugWebsocketConnector(IButtplugMessageJsonConverter converter)
     {
         _converter = converter;
 

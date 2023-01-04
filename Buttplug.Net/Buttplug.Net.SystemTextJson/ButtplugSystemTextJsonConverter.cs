@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 
 namespace Buttplug.SystemTextJson;
 
-public class ButtplugSystemTextJsonConverter : ButtplugJsonMessageConverter
+public class ButtplugSystemTextJsonConverter : ButtplugMessageJsonConverter
 {
     private readonly JsonSerializerOptions? _serializerOptions;
     private readonly JsonNodeOptions? _nodeOptions;
@@ -17,8 +17,8 @@ public class ButtplugSystemTextJsonConverter : ButtplugJsonMessageConverter
         _documentOptions = documentOptions;
     }
 
-    public override string Serialize<T>(T message) => Serialize(new[] { message });
-    public override string Serialize<T>(IEnumerable<T> messages)
+    public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });
+    public override string Serialize(IEnumerable<IButtplugMessage> messages)
     {
         var array = new JsonArray(_nodeOptions);
         foreach (var messageObject in messages.Select(m => ButtplugMessageToJObject(m)))

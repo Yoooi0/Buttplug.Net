@@ -3,19 +3,19 @@ using System.Reflection;
 
 namespace Buttplug;
 
-public interface IButtplugJsonMessageConverter
+public interface IButtplugMessageJsonConverter
 {
-    string Serialize<T>(T message) where T : IButtplugMessage;
-    string Serialize<T>(IEnumerable<T> message) where T : IButtplugMessage;
+    string Serialize(IButtplugMessage message);
+    string Serialize(IEnumerable<IButtplugMessage> message);
     public IEnumerable<IButtplugMessage> Deserialize(string json);
 }
 
-public abstract class ButtplugJsonMessageConverter : IButtplugJsonMessageConverter
+public abstract class ButtplugMessageJsonConverter : IButtplugMessageJsonConverter
 {
     private readonly ILookup<string, Type> _messageTypeLookup;
     private readonly ILookup<Type, string> _messageNameLookup;
 
-    protected ButtplugJsonMessageConverter()
+    protected ButtplugMessageJsonConverter()
     {
         var messageTypes = ImmutableList.CreateRange(Assembly.GetAssembly(typeof(IButtplugMessage))!
                                                              .GetTypes()
@@ -31,6 +31,6 @@ public abstract class ButtplugJsonMessageConverter : IButtplugJsonMessageConvert
     protected Type GetMessageType(string messageName) => _messageTypeLookup[messageName].Single();
 
     public abstract IEnumerable<IButtplugMessage> Deserialize(string json);
-    public abstract string Serialize<T>(T message) where T : IButtplugMessage;
-    public abstract string Serialize<T>(IEnumerable<T> message) where T : IButtplugMessage;
+    public abstract string Serialize(IButtplugMessage message);
+    public abstract string Serialize(IEnumerable<IButtplugMessage> message);
 }

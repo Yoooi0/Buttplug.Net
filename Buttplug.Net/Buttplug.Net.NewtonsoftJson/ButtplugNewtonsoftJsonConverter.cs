@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Buttplug.NewtonsoftJson;
 
-public class ButtplugNewtonsoftJsonConverter : ButtplugJsonMessageConverter
+public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
 {
     private readonly JsonSerializerSettings? _settings;
 
@@ -12,8 +12,8 @@ public class ButtplugNewtonsoftJsonConverter : ButtplugJsonMessageConverter
         _settings = settings;
     }
 
-    public override string Serialize<T>(T message) => Serialize(new[] { message });
-    public override string Serialize<T>(IEnumerable<T> messages)
+    public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });
+    public override string Serialize(IEnumerable<IButtplugMessage> messages)
     {
         var array = new JArray(messages.Select(m => ButtplugMessageToJObject(m)).ToArray());
         return JsonConvert.SerializeObject(array, Formatting.None, _settings);

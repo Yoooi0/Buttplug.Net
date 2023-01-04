@@ -1,10 +1,6 @@
 ﻿using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 
 namespace Buttplug;
-
-internal delegate Task<IButtplugMessage> ButtplugDeviceSendMessageAsync(IButtplugMessage message, CancellationToken cancellationToken);
-internal delegate Task<T> ButtplugDeviceSendMessageExpectTAsync<T>(IButtplugMessage message, CancellationToken cancellationToken) where T : IButtplugMessage;
 
 public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 {

@@ -77,11 +77,8 @@ internal class ButtplugMessageTaskManager
 
         protected virtual void Dispose(bool disposing)
         {
-            if (_completionSource != null && _cancellationSource != null)
-                _completionSource.TrySetCanceled(_cancellationSource.Token);
-
-            _tokenRegistration?.Dispose();
             _cancellationSource?.Cancel();
+            _tokenRegistration?.Dispose();
             _cancellationSource?.Dispose();
 
             _tokenRegistration = null;

@@ -34,13 +34,13 @@ public class ButtplugClient : IAsyncDisposable
         {
             _connector = new ButtplugWebsocketConnector(_converter);
             _connector.InvalidMessageReceived += (_, e) => ErrorReceived?.Invoke(this, e);
-            await _connector.ConnectAsync(uri, cancellationToken);
+            await _connector.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
 
-            var serverInfo = await SendMessageExpectTAsync<ServerInfoButtplugMessage>(new RequestServerInfoButtplugMessage(Name), cancellationToken);
+            var serverInfo = await SendMessageExpectTAsync<ServerInfoButtplugMessage>(new RequestServerInfoButtplugMessage(Name), cancellationToken).ConfigureAwait(false);
             if (serverInfo.MessageVersion < 3)
                 throw new ButtplugException($"A newer server is required ({serverInfo.MessageVersion} < {MessageVersion})");
 
-            var deviceList = await SendMessageExpectTAsync<DeviceListButtplugMessage>(new RequestDeviceListButtplugMessage(), cancellationToken);
+            var deviceList = await SendMessageExpectTAsync<DeviceListButtplugMessage>(new RequestDeviceListButtplugMessage(), cancellationToken).ConfigureAwait(false);
             foreach (var info in deviceList.Devices)
             {
                 if (_devices.ContainsKey(info.DeviceIndex))
@@ -70,7 +70,7 @@ public class ButtplugClient : IAsyncDisposable
         }
         catch(Exception e)
         {
-            await DisconnectAsync();
+            await DisconnectAsync().ConfigureAwait(false);
             e.Throw();
         }
     }
@@ -85,7 +85,7 @@ public class ButtplugClient : IAsyncDisposable
             if (maxPingTime > 0)
                 tasks.Add(WriteAsync(maxPingTime, cancellationSource.Token));
 
-            var task = await Task.WhenAny(tasks);
+            var task = await Task.WhenAny(tasks).ConfigureAwait(false);
             cancellationSource.Cancel();
 
             task.ThrowIfFaulted();
@@ -104,7 +104,7 @@ public class ButtplugClient : IAsyncDisposable
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var message = await _connector!.RecieveMessageAsync(cancellationToken);
+                var message = await _connector!.RecieveMessageAsync(cancellationToken).ConfigureAwait(false);
                 if (message is DeviceAddedButtplugMessage deviceAdded)
                 {
                     var device = new ButtplugDevice(_connector)
@@ -162,8 +162,8 @@ public class ButtplugClient : IAsyncDisposable
         try
         {
             var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(maxPingTime / 2));
-            while (await timer.WaitForNextTickAsync(cancellationToken) && !cancellationToken.IsCancellationRequested)
-                _ = await SendMessageExpectTAsync<OkButtplugMessage>(new PingButtplugMessage(), cancellationToken);
+            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false) && !cancellationToken.IsCancellationRequested)
+                _ = await SendMessageExpectTAsync<OkButtplugMessage>(new PingButtplugMessage(), cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) { }
     }
@@ -177,13 +177,13 @@ public class ButtplugClient : IAsyncDisposable
         _cancellationSource?.Cancel();
 
         if (_task != null)
-            await _task;
+            await _task.ConfigureAwait(false);
 
         _cancellationSource?.Dispose();
         _cancellationSource = null;
 
         if (_connector != null)
-            await _connector.DisposeAsync();
+            await _connector.DisposeAsync().ConfigureAwait(false);
 
         _connector = null;
 
@@ -199,23 +199,23 @@ public class ButtplugClient : IAsyncDisposable
     }
 
     public async Task StartScanningAsync(CancellationToken cancellationToken)
-        => await SendMessageExpectTAsync<OkButtplugMessage>(new StartScanningButtplugMessage(), cancellationToken);
+        => await SendMessageExpectTAsync<OkButtplugMessage>(new StartScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);
 
     public async Task StopScanningAsync(CancellationToken cancellationToken)
-        => await SendMessageExpectTAsync<OkButtplugMessage>(new StopScanningButtplugMessage(), cancellationToken);
+        => await SendMessageExpectTAsync<OkButtplugMessage>(new StopScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);
 
     public async Task StopAllDevicesAsync(CancellationToken cancellationToken)
-        => await SendMessageExpectTAsync<OkButtplugMessage>(new StopAllDevicesButtplugMessage(), cancellationToken);
+        => await SendMessageExpectTAsync<OkButtplugMessage>(new StopAllDevicesButtplugMessage(), cancellationToken).ConfigureAwait(false);
 
     private async Task<T> SendMessageExpectTAsync<T>(IButtplugMessage message, CancellationToken cancellationToken) where T : IButtplugMessage
         => _connector == null ? throw new ObjectDisposedException(nameof(_connector))
-                              : await _connector.SendMessageExpectTAsync<T>(message, cancellationToken);
+                              : await _connector.SendMessageExpectTAsync<T>(message, cancellationToken).ConfigureAwait(false);
 
-    protected virtual async ValueTask DisposeAsync(bool disposing) => await DisconnectAsync();
+    protected virtual async ValueTask DisposeAsync(bool disposing) => await DisconnectAsync().ConfigureAwait(false);
 
     public async ValueTask DisposeAsync()
     {
-        await DisposeAsync(disposing: true);
+        await DisposeAsync(disposing: true).ConfigureAwait(false);
         GC.SuppressFinalize(this);
     }
 }

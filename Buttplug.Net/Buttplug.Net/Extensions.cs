@@ -29,8 +29,8 @@ internal static class Extensions
         var result = default(ValueWebSocketReceiveResult);
         do
         {
-            result = await client.ReceiveAsync(memoryOwner.Memory, cancellationToken);
-            await stream.WriteAsync(memoryOwner.Memory[..result.Count], cancellationToken);
+            result = await client.ReceiveAsync(memoryOwner.Memory, cancellationToken).ConfigureAwait(false);
+            await stream.WriteAsync(memoryOwner.Memory[..result.Count], cancellationToken).ConfigureAwait(false);
         } while (!cancellationToken.IsCancellationRequested && !result.EndOfMessage);
 
         return encoding.GetString(stream.ToArray());

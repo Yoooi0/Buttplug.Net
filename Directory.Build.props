@@ -1,0 +1,31 @@
+<Project>
+    <PropertyGroup>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <Authors>Yoooi</Authors>
+		<Copyright>Copyright © Yoooi 2023</Copyright>
+		
+        <PackageTags>buttplug;intiface</PackageTags>
+        <PackageProjectUrl>https://github.com/Yoooi0/Buttplug.Net</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>git://github.com/Yoooi0/Buttplug.Net</RepositoryUrl>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl> 
+
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0</FileVersion>
+        <VersionPrefix>1.0.0</VersionPrefix>
+        <VersionSuffix></VersionSuffix>
+
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+	</ItemGroup>
+</Project>

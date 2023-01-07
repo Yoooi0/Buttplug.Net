@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Title>Buttplug.Net.NewtonsoftJson</Title>
+		<Product>Buttplug.Net.NewtonsoftJson</Product>
+		<Description>Newtonsoft.Json based converter for Buttplug.Net</Description>
+		<Summary>Newtonsoft.Json based converter for Buttplug.Net</Summary>
+		<PackageId>Buttplug.Net.NewtonsoftJson</PackageId>
+		
+		<RootNamespace>Buttplug.NewtonsoftJson</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Buttplug.Net\Buttplug.Net.csproj" />
+	</ItemGroup>
+
+</Project>

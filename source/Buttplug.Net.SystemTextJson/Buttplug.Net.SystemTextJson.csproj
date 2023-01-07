@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Title>Buttplug.Net.SystemTextJson</Title>
+		<Product>Buttplug.Net.SystemTextJson</Product>
+		<Description>System.Text.Json based converter for Buttplug.Net</Description>
+		<Summary>System.Text.Json based converter for Buttplug.Net</Summary>
+		<PackageId>Buttplug.Net.SystemTextJson</PackageId>
+		
+		<RootNamespace>Buttplug.SystemTextJson</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Buttplug.Net\Buttplug.Net.csproj" />
+	</ItemGroup>
+
+</Project>

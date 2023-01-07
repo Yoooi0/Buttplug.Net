@@ -54,42 +54,42 @@ internal class ButtplugMessageTaskManager
             registration.Dispose();
         }
     }
+}
 
-    private class CancellableTaskCompletionSource<T> : IDisposable
+internal class CancellableTaskCompletionSource<T> : IDisposable
+{
+    private CancellationTokenSource? _cancellationSource;
+    private TaskCompletionSource<T>? _completionSource;
+    private CancellationTokenRegistration? _tokenRegistration;
+
+    public Task<T> Task => _completionSource?.Task ?? throw new ObjectDisposedException(nameof(_completionSource));
+
+    public CancellableTaskCompletionSource(CancellationToken cancellationToken)
     {
-        private CancellationTokenSource? _cancellationSource;
-        private TaskCompletionSource<T>? _completionSource;
-        private CancellationTokenRegistration? _tokenRegistration;
+        _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _completionSource = new TaskCompletionSource<T>();
 
-        public Task<T> Task => _completionSource?.Task ?? throw new ObjectDisposedException(nameof(_completionSource));
+        var linkedToken = _cancellationSource.Token;
+        _tokenRegistration = linkedToken.Register(() => _completionSource?.TrySetCanceled(linkedToken));
+    }
 
-        public CancellableTaskCompletionSource(CancellationToken cancellationToken)
-        {
-            _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _completionSource = new TaskCompletionSource<T>();
+    public void SetException(Exception exception) => _completionSource?.SetException(exception);
+    public void SetResult(T result) => _completionSource?.SetResult(result);
 
-            var linkedToken = _cancellationSource.Token;
-            _tokenRegistration = linkedToken.Register(() => _completionSource?.TrySetCanceled(linkedToken));
-        }
+    protected virtual void Dispose(bool disposing)
+    {
+        _cancellationSource?.Cancel();
+        _tokenRegistration?.Dispose();
+        _cancellationSource?.Dispose();
 
-        public void SetException(Exception exception) => _completionSource?.SetException(exception);
-        public void SetResult(T result) => _completionSource?.SetResult(result);
+        _tokenRegistration = null;
+        _cancellationSource = null;
+        _completionSource = null;
+    }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            _cancellationSource?.Cancel();
-            _tokenRegistration?.Dispose();
-            _cancellationSource?.Dispose();
-
-            _tokenRegistration = null;
-            _cancellationSource = null;
-            _completionSource = null;
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

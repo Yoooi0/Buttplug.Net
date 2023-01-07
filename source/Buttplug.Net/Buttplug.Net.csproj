@@ -8,4 +8,10 @@
 	  
 		<RootNamespace>Buttplug</RootNamespace>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="$(AssemblyName).NewtonsoftJson.Tests" />
+		<InternalsVisibleTo Include="$(AssemblyName).SystemTextJson.Tests" />
+	</ItemGroup>
 </Project>

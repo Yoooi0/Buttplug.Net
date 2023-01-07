@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <RootNamespace>Buttplug.Tests</RootNamespace>
+		<RootNamespace>Buttplug.SystemTextJson.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\source\Buttplug.Net\Buttplug.Net.csproj" />
+      <ProjectReference Include="..\..\source\Buttplug.Net.SystemTextJson\Buttplug.Net.SystemTextJson.csproj" />
     </ItemGroup>
 
 </Project>

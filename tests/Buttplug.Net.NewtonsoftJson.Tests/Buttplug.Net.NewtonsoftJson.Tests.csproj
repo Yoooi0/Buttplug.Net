@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <RootNamespace>Buttplug.Tests</RootNamespace>
+        <RootNamespace>Buttplug.NewtonsoftJson.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\source\Buttplug.Net\Buttplug.Net.csproj" />
+        <ProjectReference Include="..\..\source\Buttplug.Net.NewtonsoftJson\Buttplug.Net.NewtonsoftJson.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Buttplug.NewtonsoftJson.Tests;
+﻿namespace Buttplug.NewtonsoftJson.Tests;
 
 public class ButtplugNewtonsoftJsonConverterTests
 {

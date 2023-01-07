@@ -15,7 +15,7 @@ public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
     public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });
     public override string Serialize(IEnumerable<IButtplugMessage> messages)
     {
-        var array = new JArray(messages.Select(m => ButtplugMessageToJObject(m)).ToArray());
+        var array = new JArray(messages.Select(ButtplugMessageToJObject).ToArray());
         return JsonConvert.SerializeObject(array, Formatting.None, _settings);
     }
 

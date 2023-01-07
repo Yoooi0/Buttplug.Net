@@ -1,5 +1,4 @@
 ﻿using Buttplug.SystemTextJson;
-using System.Text.Json;
 
 namespace Buttplug.NewtonsoftJson.Tests;
 

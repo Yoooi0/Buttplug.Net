@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 
 namespace Buttplug;
 
@@ -14,6 +15,8 @@ public class ButtplugClient : IAsyncDisposable
     private readonly ConcurrentDictionary<uint, ButtplugDevice> _devices;
 
     public string Name { get; }
+
+    public ICollection<ButtplugDevice> Devices => _devices.Values;
 
     public event EventHandler<ButtplugDevice>? DeviceAdded;
     public event EventHandler<ButtplugDevice>? DeviceRemoved;

@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\source\Buttplug.Net.SystemTextJson\Buttplug.Net.SystemTextJson.csproj" />
+        <ProjectReference Include="..\..\source\Buttplug.Net.SystemTextJson\Buttplug.Net.SystemTextJson.csproj" />
     </ItemGroup>
 
 </Project>

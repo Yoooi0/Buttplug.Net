@@ -43,3 +43,9 @@ jobs:
           path: |
             source/**/Release/*.nupkg
             source/**/Release/*.snupkg
+      - name: Upload to NuGet
+        run: |
+          dotnet nuget push "source/**/Release/*.nupkg" \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --skip-duplicate

@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{C47DF3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FF00F2A-A38D-4DEA-9C5A-C2D0649044C0}"
 	ProjectSection(SolutionItems) = preProject
+		GitVersion.yml = GitVersion.yml
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection
@@ -36,7 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{6A0E
 		samples\Directory.Build.props = samples\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VibrateAllDevices", "samples\VibrateAllDevices\VibrateAllDevices.csproj", "{F326928B-F2F0-4DEB-B9EA-24CE72792F6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VibrateAllDevices", "samples\VibrateAllDevices\VibrateAllDevices.csproj", "{F326928B-F2F0-4DEB-B9EA-24CE72792F6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

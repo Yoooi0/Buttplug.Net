@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace Buttplug.NewtonsoftJson;
@@ -9,7 +10,10 @@ public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
 
     public ButtplugNewtonsoftJsonConverter(JsonSerializerSettings? settings = null)
     {
-        _settings = settings;
+        _settings = settings ?? new JsonSerializerSettings();
+
+        if (!_settings.Converters.OfType<StringEnumConverter>().Any())
+            _settings.Converters.Add(new StringEnumConverter());
     }
 
     public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });

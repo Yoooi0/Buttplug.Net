@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Buttplug.SystemTextJson;
 
@@ -12,9 +13,12 @@ public class ButtplugSystemTextJsonConverter : ButtplugMessageJsonConverter
 
     public ButtplugSystemTextJsonConverter(JsonSerializerOptions? serializerOptions = null, JsonNodeOptions? nodeOptions = null, JsonDocumentOptions? documentOptions = null)
     {
-        _serializerOptions = serializerOptions;
+        _serializerOptions = serializerOptions ?? new(JsonSerializerOptions.Default);
         _nodeOptions = nodeOptions;
         _documentOptions = documentOptions;
+
+        if (!_serializerOptions.Converters.OfType<JsonStringEnumConverter>().Any())
+            _serializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });

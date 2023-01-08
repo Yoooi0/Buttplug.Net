@@ -31,6 +31,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Net.NewtonsoftJson
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Net.SystemTextJson.Tests", "tests\Buttplug.Net.SystemTextJson.Tests\Buttplug.Net.SystemTextJson.Tests.csproj", "{D6A75E30-1EB5-4E84-8BAA-7DFE2CDFE820}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{6A0EE27F-D0F5-49D4-827F-3DC57FFA74CE}"
+	ProjectSection(SolutionItems) = preProject
+		samples\Directory.Build.props = samples\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VibrateAllDevices", "samples\VibrateAllDevices\VibrateAllDevices.csproj", "{F326928B-F2F0-4DEB-B9EA-24CE72792F6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +68,10 @@ Global
 		{D6A75E30-1EB5-4E84-8BAA-7DFE2CDFE820}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6A75E30-1EB5-4E84-8BAA-7DFE2CDFE820}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6A75E30-1EB5-4E84-8BAA-7DFE2CDFE820}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F326928B-F2F0-4DEB-B9EA-24CE72792F6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F326928B-F2F0-4DEB-B9EA-24CE72792F6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F326928B-F2F0-4DEB-B9EA-24CE72792F6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F326928B-F2F0-4DEB-B9EA-24CE72792F6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,6 +83,7 @@ Global
 		{C01BBA32-B2E0-487E-B733-A57F7DD5E376} = {C4C672C1-8015-4E01-AD04-A33198E4FEBF}
 		{7594BF11-F794-43E3-BB11-599E49A937E8} = {C4C672C1-8015-4E01-AD04-A33198E4FEBF}
 		{D6A75E30-1EB5-4E84-8BAA-7DFE2CDFE820} = {C4C672C1-8015-4E01-AD04-A33198E4FEBF}
+		{F326928B-F2F0-4DEB-B9EA-24CE72792F6F} = {6A0EE27F-D0F5-49D4-827F-3DC57FFA74CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FAFAF5C-0177-4759-BD1E-CB238F7B4E05}

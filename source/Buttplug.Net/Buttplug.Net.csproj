@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<Title>Buttplug.Net</Title>
-		<Product>Buttplug.Net</Product>
 		<Description>Buttplug.Net is a buttplug client library written in modern .Net</Description>
 		<Summary>Buttplug.Net is a buttplug client library written in modern .Net</Summary>
-		<PackageId>Buttplug.Net</PackageId>
-	  
+	  	
+	  	<AssemblyName>Buttplug.Net</AssemblyName>
 		<RootNamespace>Buttplug</RootNamespace>
 	</PropertyGroup>
 

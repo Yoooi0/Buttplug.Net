@@ -1,12 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Title>Buttplug.Net.NewtonsoftJson</Title>
-		<Product>Buttplug.Net.NewtonsoftJson</Product>
 		<Description>Newtonsoft.Json based converter for Buttplug.Net</Description>
 		<Summary>Newtonsoft.Json based converter for Buttplug.Net</Summary>
-		<PackageId>Buttplug.Net.NewtonsoftJson</PackageId>
 		
+	  	<AssemblyName>Buttplug.Net.NewtonsoftJson</AssemblyName>
 		<RootNamespace>Buttplug.NewtonsoftJson</RootNamespace>
 	</PropertyGroup>
 

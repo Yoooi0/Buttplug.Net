@@ -10,21 +10,26 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Net.SystemTextJson", "source\Buttplug.Net.SystemTextJson\Buttplug.Net.SystemTextJson.csproj", "{3EB3857A-4EE0-40E9-90E7-CA330EF53369}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{C47DF3EB-CFF8-4085-B4B9-8FEC247A9732}"
+	ProjectSection(SolutionItems) = preProject
+		source\Directory.Build.props = source\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FF00F2A-A38D-4DEA-9C5A-C2D0649044C0}"
 	ProjectSection(SolutionItems) = preProject
-		Directory.Build.props = Directory.Build.props
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C4C672C1-8015-4E01-AD04-A33198E4FEBF}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Net.Tests", "tests\Buttplug.Net.Tests\Buttplug.Net.Tests.csproj", "{C01BBA32-B2E0-487E-B733-A57F7DD5E376}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Net.NewtonsoftJson.Tests", "tests\Buttplug.Net.NewtonsoftJson.Tests\Buttplug.Net.NewtonsoftJson.Tests.csproj", "{7594BF11-F794-43E3-BB11-599E49A937E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Net.NewtonsoftJson.Tests", "tests\Buttplug.Net.NewtonsoftJson.Tests\Buttplug.Net.NewtonsoftJson.Tests.csproj", "{7594BF11-F794-43E3-BB11-599E49A937E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Net.SystemTextJson.Tests", "tests\Buttplug.Net.SystemTextJson.Tests\Buttplug.Net.SystemTextJson.Tests.csproj", "{D6A75E30-1EB5-4E84-8BAA-7DFE2CDFE820}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Net.SystemTextJson.Tests", "tests\Buttplug.Net.SystemTextJson.Tests\Buttplug.Net.SystemTextJson.Tests.csproj", "{D6A75E30-1EB5-4E84-8BAA-7DFE2CDFE820}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

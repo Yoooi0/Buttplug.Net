@@ -4,10 +4,14 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
+        <Title>$(AssemblyName)</Title>
+        <Product>$(AssemblyName)</Product>
         <Authors>Yoooi</Authors>
 		<Copyright>Copyright © Yoooi 2023</Copyright>
 		
+        <PackageId>$(AssemblyName)</PackageId>
         <PackageTags>buttplug;intiface</PackageTags>
         <PackageProjectUrl>https://github.com/Yoooi0/Buttplug.Net</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -24,4 +28,8 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false"/>
+    </ItemGroup>
 </Project>

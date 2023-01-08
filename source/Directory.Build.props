@@ -5,13 +5,13 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<IsPackable>true</IsPackable>
+        <IsPackable>true</IsPackable>
 
         <Title>$(AssemblyName)</Title>
         <Product>$(AssemblyName)</Product>
         <Authors>Yoooi</Authors>
-		<Copyright>Copyright © Yoooi 2023</Copyright>
-		
+        <Copyright>Copyright © Yoooi 2023</Copyright>
+
         <PackageId>$(AssemblyName)</PackageId>
         <PackageTags>buttplug;intiface</PackageTags>
         <PackageProjectUrl>https://github.com/Yoooi0/Buttplug.Net</PackageProjectUrl>

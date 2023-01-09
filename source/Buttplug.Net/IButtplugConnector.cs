@@ -8,13 +8,11 @@ internal interface IButtplugSender
 
 internal interface IButtplugReceiver
 {
-    Task<IButtplugMessage> RecieveMessageAsync(CancellationToken cancellationToken);
+    IAsyncEnumerable<IButtplugMessage> RecieveMessagesAsync(CancellationToken cancellationToken);
 }
 
 internal interface IButtplugConnector : IButtplugSender, IButtplugReceiver, IAsyncDisposable
 {
-    event EventHandler<Exception>? InvalidMessageReceived;
-
     Task ConnectAsync(Uri uri, CancellationToken cancellationToken);
     Task DisconnectAsync();
 }

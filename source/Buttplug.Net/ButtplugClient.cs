@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
 
 namespace Buttplug;
 
@@ -7,12 +6,13 @@ public class ButtplugClient : IAsyncDisposable
 {
     internal const uint MessageVersion = 3;
 
+    private readonly IButtplugMessageJsonConverter _converter;
+    private readonly ButtplugMessageTaskManager _taskManager;
+    private readonly ConcurrentDictionary<uint, ButtplugDevice> _devices;
+
     private IButtplugConnector? _connector;
     private CancellationTokenSource? _cancellationSource;
     private Task? _task;
-
-    private readonly IButtplugMessageJsonConverter _converter;
-    private readonly ConcurrentDictionary<uint, ButtplugDevice> _devices;
 
     public string Name { get; }
     public bool IsScanning { get; private set; }
@@ -31,14 +31,14 @@ public class ButtplugClient : IAsyncDisposable
         Name = name;
         _converter = converter;
         _devices = new ConcurrentDictionary<uint, ButtplugDevice>();
+        _taskManager = new ButtplugMessageTaskManager();
     }
 
     public async Task ConnectAsync(Uri uri, CancellationToken cancellationToken)
     {
         try
         {
-            _connector = new ButtplugWebsocketConnector(_converter);
-            _connector.InvalidMessageReceived += (_, e) => UnhandledException?.Invoke(this, e);
+            _connector = new ButtplugWebsocketConnector(_converter, _taskManager);
             await _connector.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
 
             var serverInfo = await SendMessageExpectTAsync<ServerInfoButtplugMessage>(new RequestServerInfoButtplugMessage(Name), cancellationToken).ConfigureAwait(false);
@@ -111,59 +111,61 @@ public class ButtplugClient : IAsyncDisposable
     {
         try
         {
-            while (!cancellationToken.IsCancellationRequested)
+            await foreach(var message in _connector!.RecieveMessagesAsync(cancellationToken).ConfigureAwait(false))
             {
-                var message = await _connector!.RecieveMessageAsync(cancellationToken).ConfigureAwait(false);
-                if (message is DeviceAddedButtplugMessage deviceAdded)
-                {
-                    var device = new ButtplugDevice(_connector, deviceAdded.DeviceMessages)
-                    {
-                        Index = deviceAdded.DeviceIndex,
-                        Name = deviceAdded.DeviceName,
-                        DisplayName = deviceAdded.DeviceDisplayName,
-                        MessageTimingGap = deviceAdded.DeviceMessageTimingGap
-                    };
-
-                    if (_devices.TryAdd(device.Index, device))
-                        DeviceAdded?.Invoke(this, device);
-                    else
-                        UnhandledException?.Invoke(this, new ButtplugException($"Found existing device for event \"{deviceAdded}\""));
-                }
-                else if (message is DeviceRemovedButtplugMessage deviceRemoved)
-                {
-                    if (_devices.TryRemove(deviceRemoved.DeviceIndex, out var device))
-                    {
-                        device.Dispose();
-                        DeviceRemoved?.Invoke(this, device);
-                    }
-                    else
-                    {
-                        UnhandledException?.Invoke(this, new ButtplugException($"Unable to find matching device for event \"{deviceRemoved}\""));
-                    }
-                }
-                else if (message is ScanningFinishedButtplugMessage)
-                {
-                    IsScanning = false;
-                    ScanningFinished?.Invoke(this, EventArgs.Empty);
-                }
-                else if (message is ErrorButtplugMessage error)
-                {
-                    var exception = error.ErrorCode == ErrorButtplugMessageCode.ERROR_PING
-                        ? new TimeoutException("Ping timeout", new ButtplugException(error))
-                        : (Exception) new ButtplugException(error);
-
-                    UnhandledException?.Invoke(this, exception);
-                    throw exception;
-                }
+                if (message.Id == 0)
+                    HandleSystemMessage(message);
                 else
-                {
-                    var exception = new ButtplugException($"Unexpected message: {message.GetType().Name}({message.Id})");
-                    UnhandledException?.Invoke(this, exception);
-                    throw exception;
-                }
+                    _taskManager.FinishTask(message);
             }
         }
         catch (OperationCanceledException) { }
+
+        void HandleSystemMessage(IButtplugMessage message)
+        {
+            if (message is DeviceAddedButtplugMessage deviceAdded)
+            {
+                var device = new ButtplugDevice(_connector, deviceAdded.DeviceMessages)
+                {
+                    Index = deviceAdded.DeviceIndex,
+                    Name = deviceAdded.DeviceName,
+                    DisplayName = deviceAdded.DeviceDisplayName,
+                    MessageTimingGap = deviceAdded.DeviceMessageTimingGap
+                };
+
+                if (_devices.TryAdd(device.Index, device))
+                    DeviceAdded?.Invoke(this, device);
+                else
+                    UnhandledException?.Invoke(this, new ButtplugException($"Found existing device for event \"{deviceAdded}\""));
+            }
+            else if (message is DeviceRemovedButtplugMessage deviceRemoved)
+            {
+                if (_devices.TryRemove(deviceRemoved.DeviceIndex, out var device))
+                {
+                    device.Dispose();
+                    DeviceRemoved?.Invoke(this, device);
+                }
+                else
+                {
+                    UnhandledException?.Invoke(this, new ButtplugException($"Unable to find matching device for event \"{deviceRemoved}\""));
+                }
+            }
+            else if (message is ScanningFinishedButtplugMessage)
+            {
+                IsScanning = false;
+                ScanningFinished?.Invoke(this, EventArgs.Empty);
+            }
+            else if (message is ErrorButtplugMessage error)
+            {
+                if (error.ErrorCode == ErrorButtplugMessageCode.ERROR_PING)
+                    throw new TimeoutException("Ping timeout", new ButtplugException(error));
+                throw new ButtplugException(error);
+            }
+            else
+            {
+                throw new ButtplugException($"Unexpected message: {message.GetType().Name}({message.Id})");
+            }
+        }
     }
 
     private async Task WriteAsync(uint maxPingTime, CancellationToken cancellationToken)
@@ -199,6 +201,8 @@ public class ButtplugClient : IAsyncDisposable
             await _connector.DisposeAsync().ConfigureAwait(false);
 
         _connector = null;
+
+        _taskManager.CancelPendingTasks();
 
         foreach (var (_, device) in _devices)
         {

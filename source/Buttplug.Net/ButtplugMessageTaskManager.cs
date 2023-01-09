@@ -2,7 +2,12 @@
 
 namespace Buttplug;
 
-internal class ButtplugMessageTaskManager
+internal interface IButtplugMessageTaskFactory
+{
+    Task<IButtplugMessage> CreateTask(IButtplugMessage message, CancellationToken cancellationToken);
+}
+
+internal class ButtplugMessageTaskManager : IButtplugMessageTaskFactory
 {
     private readonly ConcurrentDictionary<uint, (CancellableTaskCompletionSource<IButtplugMessage> CompletionSource, CancellationTokenRegistration Registration)> _pendingTasks;
 

@@ -1,130 +1,58 @@
 ﻿using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Channels;
 
 namespace Buttplug;
 
 internal class ButtplugWebsocketConnector : IButtplugConnector
 {
-    private readonly Channel<IButtplugMessage> _sendMessageChannel;
-    private readonly Channel<IButtplugMessage> _receiveMessageChannel;
-    private readonly ButtplugMessageTaskManager _taskManager;
     private readonly IButtplugMessageJsonConverter _converter;
+    private readonly IButtplugMessageTaskFactory _taskFactory;
+    private ClientWebSocket? _client;
 
-    private CancellationTokenSource? _cancellationSource;
-    private Task? _task;
-
-    public event EventHandler<Exception>? InvalidMessageReceived;
-
-    public ButtplugWebsocketConnector(IButtplugMessageJsonConverter converter)
+    public ButtplugWebsocketConnector(IButtplugMessageJsonConverter converter, IButtplugMessageTaskFactory taskFactory)
     {
         _converter = converter;
-
-        _taskManager = new ButtplugMessageTaskManager();
-        _sendMessageChannel = Channel.CreateUnbounded<IButtplugMessage>(new UnboundedChannelOptions()
-        {
-            SingleReader = true,
-            SingleWriter = true,
-        });
-        _receiveMessageChannel = Channel.CreateUnbounded<IButtplugMessage>(new UnboundedChannelOptions()
-        {
-            SingleReader = true,
-            SingleWriter = true,
-        });
+        _taskFactory = taskFactory;
     }
 
     public async Task ConnectAsync(Uri uri, CancellationToken cancellationToken)
     {
-        _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        if (_client != null)
+            throw new ButtplugException("Connector is already connected");
 
-        var client = new ClientWebSocket();
-        await client.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
-
-        _task = Task.Factory.StartNew(() => RunAsync(client, _cancellationSource.Token),
-            _cancellationSource.Token,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default)
-            .Unwrap();
-
-        _ = _task.ContinueWith(_ => DisconnectAsync()).Unwrap();
+        _client = new ClientWebSocket();
+        await _client.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task RunAsync(ClientWebSocket client, CancellationToken cancellationToken)
+    public IAsyncEnumerable<IButtplugMessage> RecieveMessagesAsync(CancellationToken cancellationToken)
     {
-        try
+        return _client switch
         {
-            using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var task = await Task.WhenAny(ReadAsync(client, cancellationSource.Token), WriteAsync(client, cancellationSource.Token)).ConfigureAwait(false);
-            cancellationSource.Cancel();
+            null => throw new ButtplugException("Cannot receive messages while disconnected"),
+            _ => RecieveMessagesAsync(cancellationToken)
+        };
 
-            task.ThrowIfFaulted();
-        }
-        catch (OperationCanceledException) { }
-        finally
+        async IAsyncEnumerable<IButtplugMessage> RecieveMessagesAsync([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            client.Dispose();
-        }
-    }
-
-    private async Task ReadAsync(ClientWebSocket client, CancellationToken cancellationToken)
-    {
-        try
-        {
-            while (client.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+            while (_client?.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
-                var messageJson = await client.ReceiveStringAsync(Encoding.UTF8, cancellationToken).ConfigureAwait(false);
-
-                try
-                {
-                    foreach (var message in _converter.Deserialize(messageJson))
-                    {
-                        if (message.Id == 0)
-                            await _receiveMessageChannel.Writer.WriteAsync(message, cancellationToken).ConfigureAwait(false);
-                        else
-                            _taskManager.FinishTask(message);
-                    }
-                }
-                catch (Exception e)
-                {
-                    InvalidMessageReceived?.Invoke(this, e);
-                }
+                var messageJson = await _client.ReceiveStringAsync(Encoding.UTF8, cancellationToken).ConfigureAwait(false);
+                foreach (var message in _converter.Deserialize(messageJson))
+                    yield return message;
             }
         }
-        catch (OperationCanceledException) { }
-    }
-
-    private async Task WriteAsync(ClientWebSocket client, CancellationToken cancellationToken)
-    {
-        try
-        {
-            while (client.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
-            {
-                var message = await _sendMessageChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-                var messageJson = _converter.Serialize(message);
-
-                await client.SendAsync(Encoding.UTF8.GetBytes(messageJson), WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException) { }
-    }
-
-    public async Task<IButtplugMessage> RecieveMessageAsync(CancellationToken cancellationToken)
-    {
-        if (_cancellationSource == null)
-            throw new ButtplugException("Cannot send messages while disconnected");
-
-        using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationSource.Token);
-        return await _receiveMessageChannel.Reader.ReadAsync(cancellationSource.Token).ConfigureAwait(false);
     }
 
     public async Task<IButtplugMessage> SendMessageAsync(IButtplugMessage message, CancellationToken cancellationToken)
     {
-        if (_cancellationSource == null)
+        if (_client == null)
             throw new ButtplugException("Cannot send messages while disconnected");
 
-        using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationSource.Token);
-        var task = _taskManager.CreateTask(message, cancellationSource.Token);
-        await _sendMessageChannel.Writer.WriteAsync(message, cancellationSource.Token).ConfigureAwait(false);
+        var task = _taskFactory.CreateTask(message, cancellationToken);
+        var messageJson = _converter.Serialize(message);
+
+        await _client.SendAsync(Encoding.UTF8.GetBytes(messageJson), WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);
         return await task.ConfigureAwait(false);
     }
 
@@ -139,27 +67,13 @@ internal class ButtplugWebsocketConnector : IButtplugConnector
         };
     }
 
-    private int _isDisconnectingFlag;
     public async Task DisconnectAsync()
     {
-        if (Interlocked.CompareExchange(ref _isDisconnectingFlag, 1, 0) != 0)
-            return;
+        if (_client != null)
+            await _client.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None).ConfigureAwait(false);
 
-        _cancellationSource?.Cancel();
-
-        try
-        {
-            if (_task != null)
-                await _task.ConfigureAwait(false);
-        }
-        catch { }
-
-        _cancellationSource?.Dispose();
-        _cancellationSource = null;
-
-        _taskManager.CancelPendingTasks();
-
-        Interlocked.Decrement(ref _isDisconnectingFlag);
+        _client?.Dispose();
+        _client = null;
     }
 
     protected virtual async ValueTask DisposeAsync(bool disposing) => await DisconnectAsync().ConfigureAwait(false);

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace Buttplug;
 
@@ -37,6 +37,9 @@ public class ButtplugClient : IAsyncDisposable
 
     public async Task ConnectAsync(Uri uri, CancellationToken cancellationToken)
     {
+        if (_cancellationSource != null)
+            throw new ButtplugException("The client is already connected");
+
         try
         {
             _connector = new ButtplugWebsocketConnector(_converter, _taskManager);

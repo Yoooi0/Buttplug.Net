@@ -104,6 +104,7 @@ public class ButtplugClient : IAsyncDisposable
         finally
         {
             IsConnected = false;
+            Disconnected?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -211,7 +212,6 @@ public class ButtplugClient : IAsyncDisposable
         }
 
         _devices.Clear();
-        Disconnected?.Invoke(this, EventArgs.Empty);
         Interlocked.Decrement(ref _isDisconnectingFlag);
     }
 

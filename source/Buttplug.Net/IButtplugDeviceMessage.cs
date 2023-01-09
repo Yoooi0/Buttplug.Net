@@ -8,7 +8,13 @@ internal interface IButtplugDeviceMessage : IButtplugMessage
 }
 
 [ButtplugMessageName("DeviceAdded")]
-internal record class DeviceAddedButtplugMessage(uint DeviceIndex, string DeviceName, string DeviceDisplayName, ButtplugDeviceAttributes DeviceMessages, uint DeviceMessageTimingGap) : IButtplugDeviceMessage { public uint Id => 0; }
+internal record class DeviceAddedButtplugMessage : ButtplugMessageDeviceInfo, IButtplugDeviceMessage
+{
+    public uint Id => 0;
+
+    public DeviceAddedButtplugMessage(string DeviceName, uint DeviceIndex, string DeviceDisplayName, uint DeviceMessageTimingGap, ButtplugDeviceAttributes DeviceMessages)
+        : base(DeviceName, DeviceIndex, DeviceDisplayName, DeviceMessageTimingGap, DeviceMessages) { }
+}
 
 [ButtplugMessageName("DeviceRemoved")]
 internal record class DeviceRemovedButtplugMessage(uint DeviceIndex) : IButtplugDeviceMessage { public uint Id => 0; }

@@ -8,10 +8,10 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     private readonly ButtplugDeviceAttributes _attributes;
     private IButtplugSender? _sender;
 
-    public required uint Index { get; init; }
-    public required string Name { get; init; }
-    public required string DisplayName { get; init; }
-    public required uint MessageTimingGap { get; init; }
+    public uint Index { get; }
+    public string Name { get; }
+    public string DisplayName { get; }
+    public uint MessageTimingGap { get; }
 
     public IEnumerable<ActuatorType> SupportedActuatorTypes
     {
@@ -37,10 +37,22 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 
     public IReadOnlyList<ButtplugDeviceSensorAttribute> Sensors => _attributes?.SensorReadCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
 
-    internal ButtplugDevice(IButtplugSender sender, ButtplugDeviceAttributes attributes)
+    internal ButtplugDevice(IButtplugSender sender, ButtplugMessageDeviceInfo info)
     {
         _sender = sender;
-        _attributes = attributes;
+        _attributes = info.DeviceMessages;
+
+        //workaround untill buttplug sends attribute index in the message
+        for (var i = 0; i < _attributes.ScalarCmd?.Count; i++) _attributes.ScalarCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.RotateCmd?.Count; i++) _attributes.RotateCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.LinearCmd?.Count; i++) _attributes.LinearCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.SensorReadCmd?.Count; i++) _attributes.SensorReadCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.SensorSubscribeCmd?.Count; i++) _attributes.SensorSubscribeCmd[i].Index = (uint)i;
+
+        Index = info.DeviceIndex;
+        Name = info.DeviceName;
+        DisplayName = info.DeviceDisplayName;
+        MessageTimingGap = info.DeviceMessageTimingGap;
     }
 
     public IEnumerable<ButtplugDeviceGenericAttribute> GetActuators(ActuatorType actuatorType)

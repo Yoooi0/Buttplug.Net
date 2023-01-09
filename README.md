@@ -24,10 +24,15 @@ client.UnhandledException += (_, e) => Console.WriteLine($"Error received: {e}")
 client.Disconnected += (_, e) => Console.WriteLine("Disconnected");
 
 await client.ConnectAsync(new Uri("ws://127.0.0.1:12345/"), cancellationToken);
+Console.WriteLine("Connected");
 
-foreach(var device in client.Devices)
+await client.StartScanningAsync(cancellationToken);
+await Task.Delay(1000);
+await client.StopScanningAsync(cancellationToken);
+
+foreach (var device in client.Devices)
     await device.ScalarAsync(1, ActuatorType.Vibrate, cancellationToken);
 
 await Task.Delay(1000);
-await clinet.StopAllDevicesAsync(cancellationToken);
+await client.StopAllDevicesAsync(cancellationToken);
 ```

@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 
 namespace Buttplug;
 
@@ -13,6 +13,7 @@ public class ButtplugClient : IAsyncDisposable
     private IButtplugConnector? _connector;
     private CancellationTokenSource? _cancellationSource;
     private Task? _task;
+    private int _isDisconnectingFlag;
 
     public string Name { get; }
     public bool IsScanning { get; private set; }
@@ -41,6 +42,33 @@ public class ButtplugClient : IAsyncDisposable
             _connector = new ButtplugWebsocketConnector(_converter, _taskManager);
             await _connector.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
 
+            using var connectionSemaphore = new SemaphoreSlim(0, 1);
+            _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _task = Task.Factory.StartNew(() => RunAsync(connectionSemaphore, _cancellationSource.Token),
+                _cancellationSource.Token,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default)
+                    .Unwrap();
+
+            _ = _task.ContinueWith(_ => DisconnectAsync()).Unwrap();
+
+            await connectionSemaphore.WaitAsync(_cancellationSource.Token).ConfigureAwait(false);
+        }
+        catch(Exception e)
+        {
+            await DisconnectAsync().ConfigureAwait(false);
+            e.Throw();
+        }
+    }
+
+    private async Task RunAsync(SemaphoreSlim connectionSemaphore, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            var tasks = new List<Task>() { ReadAsync(cancellationSource.Token) };
+
             var serverInfo = await SendMessageExpectTAsync<ServerInfoButtplugMessage>(new RequestServerInfoButtplugMessage(Name), cancellationToken).ConfigureAwait(false);
             if (serverInfo.MessageVersion < 3)
                 throw new ButtplugException($"A newer server is required ({serverInfo.MessageVersion} < {MessageVersion})");
@@ -51,7 +79,7 @@ public class ButtplugClient : IAsyncDisposable
                 if (_devices.ContainsKey(info.DeviceIndex))
                     continue;
 
-                var device = new ButtplugDevice(_connector, info.DeviceMessages)
+                var device = new ButtplugDevice(_connector!, info.DeviceMessages)
                 {
                     Index = info.DeviceIndex,
                     Name = info.DeviceName,
@@ -63,32 +91,11 @@ public class ButtplugClient : IAsyncDisposable
                 DeviceAdded?.Invoke(this, device);
             }
 
-            _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _task = Task.Factory.StartNew(() => RunAsync(serverInfo.MaxPingTime, _cancellationSource.Token),
-                _cancellationSource.Token,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default)
-                    .Unwrap();
+            if (serverInfo.MaxPingTime > 0)
+                tasks.Add(WriteAsync(serverInfo.MaxPingTime, cancellationSource.Token));
 
-            _ = _task.ContinueWith(_ => DisconnectAsync()).Unwrap();
-        }
-        catch(Exception e)
-        {
-            await DisconnectAsync().ConfigureAwait(false);
-            e.Throw();
-        }
-    }
-
-    private async Task RunAsync(uint maxPingTime, CancellationToken cancellationToken)
-    {
-        try
-        {
             IsConnected = true;
-            using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-            var tasks = new List<Task>() { ReadAsync(cancellationSource.Token) };
-            if (maxPingTime > 0)
-                tasks.Add(WriteAsync(maxPingTime, cancellationSource.Token));
+            connectionSemaphore.Release();
 
             var task = await Task.WhenAny(tasks).ConfigureAwait(false);
             cancellationSource.Cancel();
@@ -180,7 +187,6 @@ public class ButtplugClient : IAsyncDisposable
         catch (OperationCanceledException) { }
     }
 
-    private int _isDisconnectingFlag;
     public async Task DisconnectAsync()
     {
         if (Interlocked.CompareExchange(ref _isDisconnectingFlag, 1, 0) != 0)

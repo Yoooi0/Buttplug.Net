@@ -13,17 +13,17 @@ internal record class DeviceAddedButtplugMessage(uint DeviceIndex, string Device
 [ButtplugMessageName("DeviceRemoved")]
 internal record class DeviceRemovedButtplugMessage(uint DeviceIndex) : IButtplugDeviceMessage { public uint Id => 0; }
 
-public record class ScalarCommand(uint Index, double Scalar, ActuatorType ActuatorType);
+public readonly record struct ScalarCommand(uint Index, double Scalar, ActuatorType ActuatorType);
 
 [ButtplugMessageName("ScalarCmd")]
 internal record class ScalarCommandButtplugMessage(uint DeviceIndex, IEnumerable<ScalarCommand> Scalars) : AutoIncrementingButtplugMessage;
 
-public record class RotateCommand(uint Index, double Speed, bool Clockwise);
+public readonly record struct RotateCommand(uint Index, double Speed, bool Clockwise);
 
 [ButtplugMessageName("RotateCmd")]
 internal record class RotateCommandButtplugMessage(uint DeviceIndex, IEnumerable<RotateCommand> Rotations) : AutoIncrementingButtplugMessage;
 
-public record class LinearCommand(uint Index, double Duration, double Position);
+public readonly record struct LinearCommand(uint Index, double Duration, double Position);
 
 [ButtplugMessageName("LinearCmd")]
 internal record class LinearCommandButtplugMessage(uint DeviceIndex, IEnumerable<LinearCommand> Vectors) : AutoIncrementingButtplugMessage;

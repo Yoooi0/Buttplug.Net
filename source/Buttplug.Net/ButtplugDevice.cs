@@ -32,7 +32,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public IReadOnlyList<ButtplugDeviceGenericAttribute> ScalarActuators => _attributes.ScalarCmd;
 
     public IEnumerable<SensorType> SupportedSensorTypes
-        => _attributes.SensorReadCmd.Select(c => c.SensorType);
+        => _attributes.SensorReadCmd.Select(c => c.SensorType).Distinct();
 
     public IReadOnlyList<ButtplugDeviceSensorAttribute> Sensors => _attributes.SensorReadCmd;
 

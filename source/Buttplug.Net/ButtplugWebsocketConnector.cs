@@ -138,8 +138,12 @@ internal class ButtplugWebsocketConnector : IButtplugConnector
 
         _cancellationSource?.Cancel();
 
-        if (_task != null)
-            await _task.ConfigureAwait(false);
+        try
+        {
+            if (_task != null)
+                await _task.ConfigureAwait(false);
+        }
+        catch { }
 
         _cancellationSource?.Dispose();
         _cancellationSource = null;

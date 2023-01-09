@@ -76,11 +76,11 @@ public record class ButtplugDeviceAttributes(ImmutableList<ButtplugDeviceGeneric
     [OnDeserialized]
     internal void OnDeserializedMethod(StreamingContext _)
     {
-        for (var i = 0; i < ScalarCmd?.Count; i++) ScalarCmd[i].Index = (uint)i;
-        for (var i = 0; i < RotateCmd?.Count; i++) RotateCmd[i].Index = (uint)i;
-        for (var i = 0; i < LinearCmd?.Count; i++) LinearCmd[i].Index = (uint)i;
-        for (var i = 0; i < SensorReadCmd?.Count; i++) SensorReadCmd[i].Index = (uint)i;
-        for (var i = 0; i < SensorSubscribeCmd?.Count; i++) SensorSubscribeCmd[i].Index = (uint)i;
+        for (var i = 0; i < ScalarCmd.Count; i++) ScalarCmd[i].Index = (uint)i;
+        for (var i = 0; i < RotateCmd.Count; i++) RotateCmd[i].Index = (uint)i;
+        for (var i = 0; i < LinearCmd.Count; i++) LinearCmd[i].Index = (uint)i;
+        for (var i = 0; i < SensorReadCmd.Count; i++) SensorReadCmd[i].Index = (uint)i;
+        for (var i = 0; i < SensorSubscribeCmd.Count; i++) SensorSubscribeCmd[i].Index = (uint)i;
     }
 }
 

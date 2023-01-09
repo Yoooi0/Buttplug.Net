@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 
 namespace Buttplug;
@@ -15,6 +15,7 @@ public class ButtplugClient : IAsyncDisposable
     private readonly ConcurrentDictionary<uint, ButtplugDevice> _devices;
 
     public string Name { get; }
+    public bool IsScanning { get; private set; }
 
     public ICollection<ButtplugDevice> Devices => _devices.Values;
 
@@ -136,6 +137,7 @@ public class ButtplugClient : IAsyncDisposable
                 }
                 else if (message is ScanningFinishedButtplugMessage)
                 {
+                    IsScanning = false;
                     ScanningFinished?.Invoke(this, EventArgs.Empty);
                 }
                 else if (message is ErrorButtplugMessage error)
@@ -200,7 +202,13 @@ public class ButtplugClient : IAsyncDisposable
     }
 
     public async Task StartScanningAsync(CancellationToken cancellationToken)
-        => await SendMessageExpectTAsync<OkButtplugMessage>(new StartScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);
+    {
+        if (IsScanning)
+            return;
+
+        await SendMessageExpectTAsync<OkButtplugMessage>(new StartScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);
+        IsScanning = true;
+    }
 
     public async Task StopScanningAsync(CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new StopScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);

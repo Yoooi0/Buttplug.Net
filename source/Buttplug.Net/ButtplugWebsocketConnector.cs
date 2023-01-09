@@ -38,6 +38,9 @@ internal class ButtplugWebsocketConnector : IButtplugConnector
             while (_client?.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
                 var messageJson = await _client.ReceiveStringAsync(Encoding.UTF8, cancellationToken).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(messageJson))
+                    continue;
+
                 foreach (var message in _converter.Deserialize(messageJson))
                     yield return message;
             }

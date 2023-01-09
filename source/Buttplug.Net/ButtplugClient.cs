@@ -49,13 +49,12 @@ public class ButtplugClient : IAsyncDisposable
                 if (_devices.ContainsKey(info.DeviceIndex))
                     continue;
 
-                var device = new ButtplugDevice(_connector)
+                var device = new ButtplugDevice(_connector, info.DeviceMessages)
                 {
                     Index = info.DeviceIndex,
                     Name = info.DeviceName,
                     DisplayName = info.DeviceDisplayName,
-                    MessageTimingGap = info.DeviceMessageTimingGap,
-                    MessageAttributes = info.DeviceMessages
+                    MessageTimingGap = info.DeviceMessageTimingGap
                 };
 
                 _devices.TryAdd(info.DeviceIndex, device);
@@ -110,13 +109,12 @@ public class ButtplugClient : IAsyncDisposable
                 var message = await _connector!.RecieveMessageAsync(cancellationToken).ConfigureAwait(false);
                 if (message is DeviceAddedButtplugMessage deviceAdded)
                 {
-                    var device = new ButtplugDevice(_connector)
+                    var device = new ButtplugDevice(_connector, deviceAdded.DeviceMessages)
                     {
                         Index = deviceAdded.DeviceIndex,
                         Name = deviceAdded.DeviceName,
                         DisplayName = deviceAdded.DeviceDisplayName,
-                        MessageTimingGap = deviceAdded.DeviceMessageTimingGap,
-                        MessageAttributes = deviceAdded.DeviceMessages
+                        MessageTimingGap = deviceAdded.DeviceMessageTimingGap
                     };
 
                     if (_devices.TryAdd(device.Index, device))

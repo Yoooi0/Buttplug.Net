@@ -69,9 +69,8 @@ internal class ButtplugWebsocketConnector : IButtplugConnector
 
     public async Task DisconnectAsync()
     {
-        if (_client != null)
-            if (_client.State == WebSocketState.Connecting || _client.State == WebSocketState.Open)
-                await _client.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None).ConfigureAwait(false);
+        if (_client != null && (_client.State == WebSocketState.Connecting || _client.State == WebSocketState.Open))
+            await _client.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None).ConfigureAwait(false);
 
         _client?.Dispose();
         _client = null;

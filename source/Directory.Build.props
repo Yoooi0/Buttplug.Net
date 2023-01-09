@@ -25,10 +25,9 @@
         <FileVersion>1.0.0.0</FileVersion>
 		<Version>1.0.0</Version>
 
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<DebugType>embedded</DebugType>
-		<EmbedAllSources>True</EmbedAllSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<EmbedAllSources>true</EmbedAllSources>
     </PropertyGroup>
 
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">

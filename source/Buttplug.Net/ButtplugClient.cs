@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 
 namespace Buttplug;
@@ -16,6 +16,7 @@ public class ButtplugClient : IAsyncDisposable
 
     public string Name { get; }
     public bool IsScanning { get; private set; }
+    public bool IsConnected { get; private set; }
 
     public ICollection<ButtplugDevice> Devices => _devices.Values;
 
@@ -82,6 +83,7 @@ public class ButtplugClient : IAsyncDisposable
     {
         try
         {
+            IsConnected = true;
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             var tasks = new List<Task>() { ReadAsync(cancellationSource.Token) };
@@ -98,6 +100,10 @@ public class ButtplugClient : IAsyncDisposable
         {
             ErrorReceived?.Invoke(this, e);
             e.Throw();
+        }
+        finally
+        {
+            IsConnected = false;
         }
     }
 

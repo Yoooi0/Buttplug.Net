@@ -27,7 +27,14 @@
 
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<DebugType>embedded</DebugType>
+		<EmbedAllSources>True</EmbedAllSources>
     </PropertyGroup>
+
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
 
     <ItemGroup>
         <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false"/>

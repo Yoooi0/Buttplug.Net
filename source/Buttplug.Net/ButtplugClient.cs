@@ -22,7 +22,7 @@ public class ButtplugClient : IAsyncDisposable
 
     public event EventHandler<ButtplugDevice>? DeviceAdded;
     public event EventHandler<ButtplugDevice>? DeviceRemoved;
-    public event EventHandler<Exception>? ErrorReceived;
+    public event EventHandler<Exception>? UnhandledException;
     public event EventHandler? ScanningFinished;
     public event EventHandler? Disconnected;
 
@@ -38,7 +38,7 @@ public class ButtplugClient : IAsyncDisposable
         try
         {
             _connector = new ButtplugWebsocketConnector(_converter);
-            _connector.InvalidMessageReceived += (_, e) => ErrorReceived?.Invoke(this, e);
+            _connector.InvalidMessageReceived += (_, e) => UnhandledException?.Invoke(this, e);
             await _connector.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
 
             var serverInfo = await SendMessageExpectTAsync<ServerInfoButtplugMessage>(new RequestServerInfoButtplugMessage(Name), cancellationToken).ConfigureAwait(false);
@@ -98,7 +98,7 @@ public class ButtplugClient : IAsyncDisposable
         catch (OperationCanceledException) { }
         catch (Exception e)
         {
-            ErrorReceived?.Invoke(this, e);
+            UnhandledException?.Invoke(this, e);
             e.Throw();
         }
         finally
@@ -127,7 +127,7 @@ public class ButtplugClient : IAsyncDisposable
                     if (_devices.TryAdd(device.Index, device))
                         DeviceAdded?.Invoke(this, device);
                     else
-                        ErrorReceived?.Invoke(this, new ButtplugException($"Found existing device for event \"{deviceAdded}\""));
+                        UnhandledException?.Invoke(this, new ButtplugException($"Found existing device for event \"{deviceAdded}\""));
                 }
                 else if (message is DeviceRemovedButtplugMessage deviceRemoved)
                 {
@@ -138,7 +138,7 @@ public class ButtplugClient : IAsyncDisposable
                     }
                     else
                     {
-                        ErrorReceived?.Invoke(this, new ButtplugException($"Unable to find matching device for event \"{deviceRemoved}\""));
+                        UnhandledException?.Invoke(this, new ButtplugException($"Unable to find matching device for event \"{deviceRemoved}\""));
                     }
                 }
                 else if (message is ScanningFinishedButtplugMessage)
@@ -152,13 +152,13 @@ public class ButtplugClient : IAsyncDisposable
                         ? new TimeoutException("Ping timeout", new ButtplugException(error))
                         : (Exception) new ButtplugException(error);
 
-                    ErrorReceived?.Invoke(this, exception);
+                    UnhandledException?.Invoke(this, exception);
                     throw exception;
                 }
                 else
                 {
                     var exception = new ButtplugException($"Unexpected message: {message.GetType().Name}({message.Id})");
-                    ErrorReceived?.Invoke(this, exception);
+                    UnhandledException?.Invoke(this, exception);
                     throw exception;
                 }
             }

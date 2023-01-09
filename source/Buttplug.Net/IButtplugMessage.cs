@@ -63,24 +63,24 @@ public record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, Sens
 
 public record class ButtplugDeviceRawAttribute(ImmutableList<string> Endpoints);
 public record class ButtplugDeviceVoidAttribute();
-public record class ButtplugDeviceAttributes(ImmutableList<ButtplugDeviceGenericAttribute> ScalarCmd,
-                                             ImmutableList<ButtplugDeviceGenericAttribute> RotateCmd,
-                                             ImmutableList<ButtplugDeviceGenericAttribute> LinearCmd,
-                                             ImmutableList<ButtplugDeviceSensorAttribute> SensorReadCmd,
-                                             ImmutableList<ButtplugDeviceSensorAttribute> SensorSubscribeCmd,
-                                             ImmutableList<ButtplugDeviceRawAttribute> RawReadCmd,
-                                             ImmutableList<ButtplugDeviceRawAttribute> RawWriteCmd,
-                                             ImmutableList<ButtplugDeviceRawAttribute> RawSubscribeCmd,
-                                             ButtplugDeviceVoidAttribute StopDeviceCmd)
+public record class ButtplugDeviceAttributes(ImmutableList<ButtplugDeviceGenericAttribute>? ScalarCmd,
+                                             ImmutableList<ButtplugDeviceGenericAttribute>? RotateCmd,
+                                             ImmutableList<ButtplugDeviceGenericAttribute>? LinearCmd,
+                                             ImmutableList<ButtplugDeviceSensorAttribute>? SensorReadCmd,
+                                             ImmutableList<ButtplugDeviceSensorAttribute>? SensorSubscribeCmd,
+                                             ImmutableList<ButtplugDeviceRawAttribute>? RawReadCmd,
+                                             ImmutableList<ButtplugDeviceRawAttribute>? RawWriteCmd,
+                                             ImmutableList<ButtplugDeviceRawAttribute>? RawSubscribeCmd,
+                                             ButtplugDeviceVoidAttribute? StopDeviceCmd)
 {
     [OnDeserialized]
     internal void OnDeserializedMethod(StreamingContext _)
     {
-        for (var i = 0; i < ScalarCmd.Count; i++) ScalarCmd[i].Index = (uint)i;
-        for (var i = 0; i < RotateCmd.Count; i++) RotateCmd[i].Index = (uint)i;
-        for (var i = 0; i < LinearCmd.Count; i++) LinearCmd[i].Index = (uint)i;
-        for (var i = 0; i < SensorReadCmd.Count; i++) SensorReadCmd[i].Index = (uint)i;
-        for (var i = 0; i < SensorSubscribeCmd.Count; i++) SensorSubscribeCmd[i].Index = (uint)i;
+        for (var i = 0; i < ScalarCmd?.Count; i++) ScalarCmd[i].Index = (uint)i;
+        for (var i = 0; i < RotateCmd?.Count; i++) RotateCmd[i].Index = (uint)i;
+        for (var i = 0; i < LinearCmd?.Count; i++) LinearCmd[i].Index = (uint)i;
+        for (var i = 0; i < SensorReadCmd?.Count; i++) SensorReadCmd[i].Index = (uint)i;
+        for (var i = 0; i < SensorSubscribeCmd?.Count; i++) SensorSubscribeCmd[i].Index = (uint)i;
     }
 }
 

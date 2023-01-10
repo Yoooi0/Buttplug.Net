@@ -51,6 +51,9 @@ public enum SensorType
     Pressure
 }
 
+public readonly record struct ActuatorAttributeIdentifier(uint Index, ActuatorType ActuatorType);
+public readonly record struct SensorAttributeIdentifier(uint Index, SensorType SensorType);
+
 public record class ButtplugDeviceGenericAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount)
 {
     public uint Index { get; internal set; }

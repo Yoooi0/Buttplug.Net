@@ -54,7 +54,7 @@ public enum SensorType
 public readonly record struct ActuatorAttributeIdentifier(uint Index, ActuatorType ActuatorType);
 public readonly record struct SensorAttributeIdentifier(uint Index, SensorType SensorType);
 
-public record class ButtplugDeviceGenericAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount)
+public record class ButtplugDeviceActuatorAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount)
 {
     public uint Index { get; internal set; }
 }
@@ -66,9 +66,9 @@ public record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, Sens
 
 public record class ButtplugDeviceRawAttribute(ImmutableList<string> Endpoints);
 public record class ButtplugDeviceVoidAttribute();
-public record class ButtplugDeviceAttributes(ImmutableList<ButtplugDeviceGenericAttribute>? ScalarCmd,
-                                             ImmutableList<ButtplugDeviceGenericAttribute>? RotateCmd,
-                                             ImmutableList<ButtplugDeviceGenericAttribute>? LinearCmd,
+public record class ButtplugDeviceAttributes(ImmutableList<ButtplugDeviceActuatorAttribute>? ScalarCmd,
+                                             ImmutableList<ButtplugDeviceActuatorAttribute>? RotateCmd,
+                                             ImmutableList<ButtplugDeviceActuatorAttribute>? LinearCmd,
                                              ImmutableList<ButtplugDeviceSensorAttribute>? SensorReadCmd,
                                              ImmutableList<ButtplugDeviceSensorAttribute>? SensorSubscribeCmd,
                                              ImmutableList<ButtplugDeviceRawAttribute>? RawReadCmd,

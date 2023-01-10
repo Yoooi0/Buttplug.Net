@@ -29,10 +29,10 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         }
     }
 
-    public IEnumerable<ButtplugDeviceGenericAttribute> Actuators => LinearActuators.Concat(RotateActuators).Concat(ScalarActuators);
-    public IReadOnlyList<ButtplugDeviceGenericAttribute> LinearActuators => _attributes?.LinearCmd ?? ImmutableList.Create<ButtplugDeviceGenericAttribute>();
-    public IReadOnlyList<ButtplugDeviceGenericAttribute> RotateActuators => _attributes?.RotateCmd ?? ImmutableList.Create<ButtplugDeviceGenericAttribute>();
-    public IReadOnlyList<ButtplugDeviceGenericAttribute> ScalarActuators => _attributes?.ScalarCmd ?? ImmutableList.Create<ButtplugDeviceGenericAttribute>();
+    public IEnumerable<ButtplugDeviceActuatorAttribute> Actuators => LinearActuators.Concat(RotateActuators).Concat(ScalarActuators);
+    public IReadOnlyList<ButtplugDeviceActuatorAttribute> LinearActuators => _attributes?.LinearCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
+    public IReadOnlyList<ButtplugDeviceActuatorAttribute> RotateActuators => _attributes?.RotateCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
+    public IReadOnlyList<ButtplugDeviceActuatorAttribute> ScalarActuators => _attributes?.ScalarCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
 
     public IEnumerable<SensorType> SupportedSensorTypes
         => _attributes.SensorReadCmd?.Select(c => c.SensorType).Distinct() ?? Enumerable.Empty<SensorType>();
@@ -62,7 +62,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         MessageTimingGap = info.DeviceMessageTimingGap;
     }
 
-    public IEnumerable<ButtplugDeviceGenericAttribute> GetActuators(ActuatorType actuatorType)
+    public IEnumerable<ButtplugDeviceActuatorAttribute> GetActuators(ActuatorType actuatorType)
         => actuatorType switch
         {
             ActuatorType.Position => LinearActuators,
@@ -76,9 +76,9 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public IEnumerable<ButtplugDeviceSensorAttribute> GetSubscribeSensors(SensorType sensorType)
         => SubscribeSensors.Where(c => c.SensorType == sensorType);
 
-    public ButtplugDeviceGenericAttribute? GetActuator(uint actuatorIndex, ActuatorType actuatorType)
+    public ButtplugDeviceActuatorAttribute? GetActuator(uint actuatorIndex, ActuatorType actuatorType)
         => GetActuators(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
-    public ButtplugDeviceGenericAttribute? GetActuator(ActuatorAttributeIdentifier identifier)
+    public ButtplugDeviceActuatorAttribute? GetActuator(ActuatorAttributeIdentifier identifier)
         => GetActuator(identifier.Index, identifier.ActuatorType);
 
     public ButtplugDeviceSensorAttribute? GetSensor(uint sensorIndex, SensorType sensorType)
@@ -91,9 +91,9 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public ButtplugDeviceSensorAttribute? GetSubscribeSensor(SensorAttributeIdentifier identifier)
         => GetSubscribeSensor(identifier.Index, identifier.SensorType);
 
-    public bool TryGetActuator(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out ButtplugDeviceGenericAttribute actuator)
+    public bool TryGetActuator(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out ButtplugDeviceActuatorAttribute actuator)
         => (actuator = GetActuator(actuatorIndex, actuatorType)) != null;
-    public bool TryGetActuator(ActuatorAttributeIdentifier identifier, [MaybeNullWhen(false)] out ButtplugDeviceGenericAttribute actuator)
+    public bool TryGetActuator(ActuatorAttributeIdentifier identifier, [MaybeNullWhen(false)] out ButtplugDeviceActuatorAttribute actuator)
         => TryGetActuator(identifier.Index, identifier.ActuatorType, out actuator);
 
     public bool TryGetSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceSensorAttribute sensor)

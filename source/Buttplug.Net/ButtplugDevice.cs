@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -63,12 +63,15 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     }
 
     public IEnumerable<ButtplugDeviceActuatorAttribute> GetActuators(ActuatorType actuatorType)
-        => actuatorType switch
-        {
-            ActuatorType.Position => LinearActuators,
-            ActuatorType.Rotate => RotateActuators,
-            _ => ScalarActuators.Where(c => c.ActuatorType == actuatorType)
-        };
+    {
+        var actuators = ScalarActuators.Where(c => c.ActuatorType == actuatorType);
+        if (actuatorType == ActuatorType.Position && LinearActuators.Count > 0)
+            actuators = actuators.Concat(LinearActuators);
+        if (actuatorType == ActuatorType.Rotate && RotateActuators.Count > 0)
+            actuators = actuators.Concat(RotateActuators);
+
+        return actuators;
+    }
 
     public IEnumerable<ButtplugDeviceSensorAttribute> GetSensors(SensorType sensorType)
         => Sensors.Where(c => c.SensorType == sensorType);
@@ -107,7 +110,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         => TryGetSubscribeSensor(identifier.Index, identifier.SensorType, out sensor);
 
     public async Task ScalarAsync(double scalar, ActuatorType actuatorType, CancellationToken cancellationToken)
-        => await ScalarAsync(Enumerable.Range(0, GetActuators(actuatorType).Count()).Select(i => new ScalarCommand((uint)i, scalar, actuatorType)), cancellationToken).ConfigureAwait(false);
+        => await ScalarAsync(Enumerable.Range(0, ScalarActuators.Count).Select(i => new ScalarCommand((uint)i, scalar, actuatorType)), cancellationToken).ConfigureAwait(false);
     public async Task ScalarAsync(ScalarCommand scalarCommand, CancellationToken cancellationToken)
         => await ScalarAsync(new[] { scalarCommand }, cancellationToken).ConfigureAwait(false);
     public async Task ScalarAsync(IEnumerable<(double Scalar, ActuatorType ActuatorType)> scalarCommands, CancellationToken cancellationToken)

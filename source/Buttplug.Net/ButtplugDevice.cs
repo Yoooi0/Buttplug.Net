@@ -1,3 +1,4 @@
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -6,6 +7,7 @@ namespace Buttplug;
 public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 {
     private readonly ButtplugDeviceAttributes _attributes;
+    private readonly ConcurrentDictionary<SensorAttributeIdentifier, ButtplugDeviceSensorSubscription> _sensorSubscriptions;
     private IButtplugSender? _sender;
 
     public uint Index { get; }
@@ -39,11 +41,13 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 
     public IReadOnlyList<ButtplugDeviceSensorAttribute> Sensors => _attributes?.SensorReadCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
     public IReadOnlyList<ButtplugDeviceSensorAttribute> SubscribeSensors => _attributes?.SensorSubscribeCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
+    public ICollection<ButtplugDeviceSensorSubscription> SensorSubscriptions => _sensorSubscriptions.Values;
 
     internal ButtplugDevice(IButtplugSender sender, ButtplugMessageDeviceInfo info)
     {
         _sender = sender;
         _attributes = info.DeviceMessages;
+        _sensorSubscriptions = new ConcurrentDictionary<SensorAttributeIdentifier, ButtplugDeviceSensorSubscription>();
 
         //workaround untill buttplug sends attribute index in the message
         for (var i = 0; i < _attributes.ScalarCmd?.Count; i++) _attributes.ScalarCmd[i].Index = (uint)i;
@@ -137,6 +141,31 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         return response.Data;
     }
 
+    public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(uint sensorIndex, SensorType sensorType, SensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
+        => await SubscribeSensorAsync(new(sensorIndex, sensorType), readingCallback, cancellationToken).ConfigureAwait(false);
+    public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(SensorAttributeIdentifier identifier, SensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
+    {
+        if (_sensorSubscriptions.ContainsKey(identifier))
+            throw new ButtplugException("Cannot subscribe to the same sensor multiple times");
+
+        await SendMessageExpectTAsync<OkButtplugMessage>(new SensorSubscribeCommandButtplugMessage(Index, identifier.Index, identifier.SensorType), cancellationToken).ConfigureAwait(false);
+
+        var subscription = new ButtplugDeviceSensorSubscription(this, identifier.Index, identifier.SensorType, readingCallback, UnsubscribeSensorAsync);
+        return !_sensorSubscriptions.TryAdd(identifier, subscription)
+            ? throw new ButtplugException("Cannot subscribe to the same sensor multiple times")
+            : subscription;
+    }
+
+    public async Task UnsubscribeSensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
+        => await UnsubscribeSensorAsync(new SensorAttributeIdentifier(sensorIndex, sensorType), cancellationToken).ConfigureAwait(false);
+    public async Task UnsubscribeSensorAsync(SensorAttributeIdentifier identifier, CancellationToken cancellationToken)
+    {
+        if (!_sensorSubscriptions.TryRemove(identifier, out var _))
+            throw new ButtplugException("Cannot find sensor to unsubscribe");
+
+        await SendMessageExpectTAsync<OkButtplugMessage>(new SensorUnsubscribeCommandButtplugMessage(Index, identifier.Index, identifier.SensorType), cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task StopAsync(CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new StopDeviceCommandButtplugMessage(Index), cancellationToken).ConfigureAwait(false);
 
@@ -147,6 +176,14 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public override bool Equals(object? obj) => Equals(obj as ButtplugDevice);
     public virtual bool Equals(ButtplugDevice? other) => other != null && (ReferenceEquals(this, other) || Index == other.Index);
     public override int GetHashCode() => HashCode.Combine(Index);
+
+    internal void HandleSubscribeSensorReading(uint sensorIndex, SensorType sensorType, ImmutableList<int> data)
+    {
+        if (!_sensorSubscriptions.TryGetValue(new SensorAttributeIdentifier(sensorIndex, sensorType), out var subscription))
+            throw new ButtplugException("Could not find sensor subscription for sensor reading");
+
+        subscription.HandleReadingData(data);
+    }
 
     protected virtual void Dispose(bool disposing)
     {

@@ -152,6 +152,13 @@ public class ButtplugClient : IAsyncDisposable
                 IsScanning = false;
                 ScanningFinished?.Invoke(this, EventArgs.Empty);
             }
+            else if (message is SensorReadingButtplugMessage sensorReading)
+            {
+                if (!_devices.TryGetValue(sensorReading.DeviceIndex, out var device))
+                    throw new ButtplugException("Received sensor reading for missing device");
+
+                device.HandleSubscribeSensorReading(sensorReading.SensorIndex, sensorReading.SensorType, sensorReading.Data);
+            }
             else if (message is ErrorButtplugMessage error)
             {
                 if (error.ErrorCode == ErrorButtplugMessageCode.ERROR_PING)

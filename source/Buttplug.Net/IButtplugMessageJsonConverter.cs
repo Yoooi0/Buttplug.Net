@@ -17,10 +17,11 @@ public abstract class ButtplugMessageJsonConverter : IButtplugMessageJsonConvert
 
     protected ButtplugMessageJsonConverter()
     {
-        var messageTypes = ImmutableList.CreateRange(Assembly.GetAssembly(typeof(IButtplugMessage))!
-                                                             .GetTypes()
-                                                             .Where(t => t.IsClass && !t.IsAbstract &&
-                                                                         t.IsAssignableTo(typeof(IButtplugMessage))));
+        var messageTypes = Assembly.GetAssembly(typeof(IButtplugMessage))!
+                                   .GetTypes()
+                                   .Where(t => t.IsClass && !t.IsAbstract &&
+                                               t.IsAssignableTo(typeof(IButtplugMessage)))
+                                   .ToList();
 
         var messageNames = messageTypes.ToDictionary(t => t, t => t.GetCustomAttribute<ButtplugMessageNameAttribute>()!.Name);
         _messageTypeLookup = messageTypes.ToLookup(t => messageNames[t]);

@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 
 namespace Buttplug;
 
@@ -65,22 +65,26 @@ public record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, Sens
     public uint Index { get; internal set; }
 }
 
-public record class ButtplugDeviceRawAttribute(ImmutableList<string> Endpoints);
+public record class ButtplugDeviceRawAttribute(ImmutableArray<string> Endpoints);
 public record class ButtplugDeviceVoidAttribute();
-public record class ButtplugDeviceAttributes(ImmutableList<ButtplugDeviceActuatorAttribute>? ScalarCmd,
-                                             ImmutableList<ButtplugDeviceActuatorAttribute>? RotateCmd,
-                                             ImmutableList<ButtplugDeviceActuatorAttribute>? LinearCmd,
-                                             ImmutableList<ButtplugDeviceSensorAttribute>? SensorReadCmd,
-                                             ImmutableList<ButtplugDeviceSensorAttribute>? SensorSubscribeCmd,
-                                             ImmutableList<ButtplugDeviceRawAttribute>? RawReadCmd,
-                                             ImmutableList<ButtplugDeviceRawAttribute>? RawWriteCmd,
-                                             ImmutableList<ButtplugDeviceRawAttribute>? RawSubscribeCmd,
-                                             ButtplugDeviceVoidAttribute? StopDeviceCmd);
+
+public record class ButtplugDeviceAttributes
+{
+    public ImmutableArray<ButtplugDeviceActuatorAttribute> ScalarCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
+    public ImmutableArray<ButtplugDeviceActuatorAttribute> RotateCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
+    public ImmutableArray<ButtplugDeviceActuatorAttribute> LinearCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
+    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorReadCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceSensorAttribute>();
+    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorSubscribeCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceSensorAttribute>();
+    public ImmutableArray<ButtplugDeviceRawAttribute> RawReadCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
+    public ImmutableArray<ButtplugDeviceRawAttribute> RawWriteCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
+    public ImmutableArray<ButtplugDeviceRawAttribute> RawSubscribeCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
+    public ButtplugDeviceVoidAttribute? StopDeviceCmd { get; init; }
+}
 
 internal record class ButtplugMessageDeviceInfo(string DeviceName, uint DeviceIndex, string DeviceDisplayName, uint DeviceMessageTimingGap, ButtplugDeviceAttributes DeviceMessages);
 
 [ButtplugMessageName("DeviceList")]
-internal record class DeviceListButtplugMessage(uint Id, ImmutableList<ButtplugMessageDeviceInfo> Devices) : IButtplugMessage;
+internal record class DeviceListButtplugMessage(uint Id, ImmutableArray<ButtplugMessageDeviceInfo> Devices) : IButtplugMessage;
 
 [ButtplugMessageName("RequestDeviceList")]
 internal record class RequestDeviceListButtplugMessage() : AutoIncrementingButtplugMessage;

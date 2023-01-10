@@ -23,12 +23,12 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         => SubscribeSensors.Select(c => c.SensorType).Distinct();
 
     public IEnumerable<ButtplugDeviceActuatorAttribute> Actuators => LinearActuators.Concat(RotateActuators).Concat(ScalarActuators);
-    public IReadOnlyList<ButtplugDeviceActuatorAttribute> LinearActuators => _attributes?.LinearCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
-    public IReadOnlyList<ButtplugDeviceActuatorAttribute> RotateActuators => _attributes?.RotateCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
-    public IReadOnlyList<ButtplugDeviceActuatorAttribute> ScalarActuators => _attributes?.ScalarCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
+    public IReadOnlyList<ButtplugDeviceActuatorAttribute> LinearActuators => _attributes.LinearCmd;
+    public IReadOnlyList<ButtplugDeviceActuatorAttribute> RotateActuators => _attributes.RotateCmd;
+    public IReadOnlyList<ButtplugDeviceActuatorAttribute> ScalarActuators => _attributes.ScalarCmd;
 
-    public IReadOnlyList<ButtplugDeviceSensorAttribute> Sensors => _attributes?.SensorReadCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
-    public IReadOnlyList<ButtplugDeviceSensorAttribute> SubscribeSensors => _attributes?.SensorSubscribeCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
+    public IReadOnlyList<ButtplugDeviceSensorAttribute> Sensors => _attributes.SensorReadCmd;
+    public IReadOnlyList<ButtplugDeviceSensorAttribute> SubscribeSensors => _attributes.SensorSubscribeCmd;
     public ICollection<ButtplugDeviceSensorSubscription> SensorSubscriptions => _sensorSubscriptions.Values;
 
     internal ButtplugDevice(IButtplugSender sender, ButtplugMessageDeviceInfo info)
@@ -37,12 +37,12 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         _attributes = info.DeviceMessages;
         _sensorSubscriptions = new ConcurrentDictionary<SensorAttributeIdentifier, ButtplugDeviceSensorSubscription>();
 
-        //workaround untill buttplug sends attribute index in the message
-        for (var i = 0; i < _attributes.ScalarCmd?.Count; i++) _attributes.ScalarCmd[i].Index = (uint)i;
-        for (var i = 0; i < _attributes.RotateCmd?.Count; i++) _attributes.RotateCmd[i].Index = (uint)i;
-        for (var i = 0; i < _attributes.LinearCmd?.Count; i++) _attributes.LinearCmd[i].Index = (uint)i;
-        for (var i = 0; i < _attributes.SensorReadCmd?.Count; i++) _attributes.SensorReadCmd[i].Index = (uint)i;
-        for (var i = 0; i < _attributes.SensorSubscribeCmd?.Count; i++) _attributes.SensorSubscribeCmd[i].Index = (uint)i;
+        //workaround until buttplug sends attribute index in the message
+        for (var i = 0; i < _attributes.ScalarCmd.Length; i++) _attributes.ScalarCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.RotateCmd.Length; i++) _attributes.RotateCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.LinearCmd.Length; i++) _attributes.LinearCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.SensorReadCmd.Length; i++) _attributes.SensorReadCmd[i].Index = (uint)i;
+        for (var i = 0; i < _attributes.SensorSubscribeCmd.Length; i++) _attributes.SensorSubscribeCmd[i].Index = (uint)i;
 
         Index = info.DeviceIndex;
         Name = info.DeviceName;
@@ -134,11 +134,11 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         await LinearAsync(new[] { new LinearCommand(identifier.Index, duration, position) }, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableList<int>> SensorAsync(SensorType sensorType, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<int>> SensorAsync(SensorType sensorType, CancellationToken cancellationToken)
         => await SensorAsync(GetSensors(sensorType).First().Index, sensorType, cancellationToken).ConfigureAwait(false);
-    public async Task<ImmutableList<int>> SensorAsync(SensorAttributeIdentifier identifier, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<int>> SensorAsync(SensorAttributeIdentifier identifier, CancellationToken cancellationToken)
         => await SensorAsync(identifier.Index, identifier.SensorType, cancellationToken).ConfigureAwait(false);
-    public async Task<ImmutableList<int>> SensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<int>> SensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
     {
         var response = await SendMessageExpectTAsync<SensorReadingButtplugMessage>(new SensorReadCommandButtplugMessage(Index, sensorIndex, sensorType), cancellationToken).ConfigureAwait(false);
         return response.Data;
@@ -182,7 +182,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public virtual bool Equals(ButtplugDevice? other) => other != null && (ReferenceEquals(this, other) || Index == other.Index);
     public override int GetHashCode() => HashCode.Combine(Index);
 
-    internal void HandleSubscribeSensorReading(uint sensorIndex, SensorType sensorType, ImmutableList<int> data)
+    internal void HandleSubscribeSensorReading(uint sensorIndex, SensorType sensorType, ImmutableArray<int> data)
     {
         if (!_sensorSubscriptions.TryGetValue(new SensorAttributeIdentifier(sensorIndex, sensorType), out var subscription))
             throw new ButtplugException("Could not find sensor subscription for sensor reading");

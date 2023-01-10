@@ -41,7 +41,7 @@ internal record class StopDeviceCommandButtplugMessage(uint DeviceIndex) : AutoI
 internal record class SensorReadCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;
 
 [ButtplugMessageName("SensorReading")]
-internal record class SensorReadingButtplugMessage(uint Id, uint DeviceIndex, uint SensorIndex, SensorType SensorType, ImmutableList<int> Data) : IButtplugDeviceMessage;
+internal record class SensorReadingButtplugMessage(uint Id, uint DeviceIndex, uint SensorIndex, SensorType SensorType, ImmutableArray<int> Data) : IButtplugDeviceMessage;
 
 [ButtplugMessageName("SensorSubscribeCmd")]
 internal record class SensorSubscribeCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;

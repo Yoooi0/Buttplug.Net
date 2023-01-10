@@ -2,7 +2,7 @@
 
 namespace Buttplug;
 
-public delegate void SensorSubscriptionReadingCallback(ButtplugDevice device, uint sensorIndex, SensorType sensorType, ImmutableList<int> data);
+public delegate void SensorSubscriptionReadingCallback(ButtplugDevice device, uint sensorIndex, SensorType sensorType, ImmutableArray<int> data);
 public delegate Task ButtplugDeviceSensorSubscriptionUnsubscribe(SensorAttributeIdentifier indentifier, CancellationToken cancellationToken);
 
 public record class ButtplugDeviceSensorSubscription
@@ -25,7 +25,7 @@ public record class ButtplugDeviceSensorSubscription
         SensorType = sensorType;
     }
 
-    internal void HandleReadingData(ImmutableList<int> data)
+    internal void HandleReadingData(ImmutableArray<int> data)
         => _readingCallback(Device, SensorIndex, SensorType, data);
 
     public async Task UnsubscribeAsync(CancellationToken cancellationToken)

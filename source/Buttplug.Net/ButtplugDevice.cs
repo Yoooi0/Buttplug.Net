@@ -16,28 +16,16 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public uint MessageTimingGap { get; }
 
     public IEnumerable<ActuatorType> SupportedActuatorTypes
-    {
-        get
-        {
-            var actuatorTypes = ScalarActuators.Select(c => c.ActuatorType);
-            if (LinearActuators.Count > 0)
-                actuatorTypes = actuatorTypes.Append(ActuatorType.Position);
-            if (RotateActuators.Count > 0)
-                actuatorTypes = actuatorTypes.Append(ActuatorType.Rotate);
-
-            return actuatorTypes.Distinct();
-        }
-    }
+        => Actuators.Select(a => a.ActuatorType).Distinct();
+    public IEnumerable<SensorType> SupportedSensorTypes
+        => Sensors.Select(c => c.SensorType).Distinct();
+    public IEnumerable<SensorType> SupportedSubscribeSensorTypes
+        => SubscribeSensors.Select(c => c.SensorType).Distinct();
 
     public IEnumerable<ButtplugDeviceActuatorAttribute> Actuators => LinearActuators.Concat(RotateActuators).Concat(ScalarActuators);
     public IReadOnlyList<ButtplugDeviceActuatorAttribute> LinearActuators => _attributes?.LinearCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
     public IReadOnlyList<ButtplugDeviceActuatorAttribute> RotateActuators => _attributes?.RotateCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
     public IReadOnlyList<ButtplugDeviceActuatorAttribute> ScalarActuators => _attributes?.ScalarCmd ?? ImmutableList.Create<ButtplugDeviceActuatorAttribute>();
-
-    public IEnumerable<SensorType> SupportedSensorTypes
-        => _attributes.SensorReadCmd?.Select(c => c.SensorType).Distinct() ?? Enumerable.Empty<SensorType>();
-    public IEnumerable<SensorType> SupportedSensorSubscribeTypes
-        => _attributes.SensorReadCmd?.Select(c => c.SensorType).Distinct() ?? Enumerable.Empty<SensorType>();
 
     public IReadOnlyList<ButtplugDeviceSensorAttribute> Sensors => _attributes?.SensorReadCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
     public IReadOnlyList<ButtplugDeviceSensorAttribute> SubscribeSensors => _attributes?.SensorSubscribeCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
@@ -63,15 +51,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     }
 
     public IEnumerable<ButtplugDeviceActuatorAttribute> GetActuators(ActuatorType actuatorType)
-    {
-        var actuators = ScalarActuators.Where(c => c.ActuatorType == actuatorType);
-        if (actuatorType == ActuatorType.Position && LinearActuators.Count > 0)
-            actuators = actuators.Concat(LinearActuators);
-        if (actuatorType == ActuatorType.Rotate && RotateActuators.Count > 0)
-            actuators = actuators.Concat(RotateActuators);
-
-        return actuators;
-    }
+        => Actuators.Where(a => a.ActuatorType == actuatorType);
 
     public IEnumerable<ButtplugDeviceSensorAttribute> GetSensors(SensorType sensorType)
         => Sensors.Where(c => c.SensorType == sensorType);

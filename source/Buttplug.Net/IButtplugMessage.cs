@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Runtime.Serialization;
+using System.Collections.Immutable;
 
 namespace Buttplug;
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 
 namespace Buttplug;
@@ -34,8 +34,11 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 
     public IEnumerable<SensorType> SupportedSensorTypes
         => _attributes.SensorReadCmd?.Select(c => c.SensorType).Distinct() ?? Enumerable.Empty<SensorType>();
+    public IEnumerable<SensorType> SupportedSensorSubscribeTypes
+        => _attributes.SensorReadCmd?.Select(c => c.SensorType).Distinct() ?? Enumerable.Empty<SensorType>();
 
     public IReadOnlyList<ButtplugDeviceSensorAttribute> Sensors => _attributes?.SensorReadCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
+    public IReadOnlyList<ButtplugDeviceSensorAttribute> SubscribeSensors => _attributes?.SensorSubscribeCmd ?? ImmutableList.Create<ButtplugDeviceSensorAttribute>();
 
     internal ButtplugDevice(IButtplugSender sender, ButtplugMessageDeviceInfo info)
     {

@@ -34,6 +34,7 @@ internal record class ErrorButtplugMessage(uint Id, string ErrorMessage, ErrorBu
 
 public enum ActuatorType
 {
+    Unknown,
     Vibrate,
     Rotate,
     Oscillate,
@@ -44,6 +45,7 @@ public enum ActuatorType
 
 public enum SensorType
 {
+    Unknown,
     Battery,
     RSSI,
     Button,

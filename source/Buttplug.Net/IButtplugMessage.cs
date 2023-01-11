@@ -32,43 +32,20 @@ internal enum ErrorButtplugMessageCode
 [ButtplugMessageName("Error")]
 internal record class ErrorButtplugMessage(uint Id, string ErrorMessage, ErrorButtplugMessageCode ErrorCode) : IButtplugMessage;
 
-public enum ActuatorType
-{
-    Unknown,
-    Vibrate,
-    Rotate,
-    Oscillate,
-    Constrict,
-    Inflate,
-    Position
-}
-
-public enum SensorType
-{
-    Unknown,
-    Battery,
-    RSSI,
-    Button,
-    Pressure
-}
-
-public readonly record struct ActuatorAttributeIdentifier(uint Index, ActuatorType ActuatorType);
-public readonly record struct SensorAttributeIdentifier(uint Index, SensorType SensorType);
-
-public record class ButtplugDeviceActuatorAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount)
+internal record class ButtplugDeviceActuatorAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount)
 {
     public uint Index { get; internal set; }
 }
 
-public record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, SensorType SensorType, ImmutableArray<ImmutableArray<uint>> SensorRange)
+internal record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, SensorType SensorType, ImmutableArray<ImmutableArray<uint>> SensorRange)
 {
     public uint Index { get; internal set; }
 }
 
-public record class ButtplugDeviceRawAttribute(ImmutableArray<string> Endpoints);
-public record class ButtplugDeviceVoidAttribute();
+internal record class ButtplugDeviceRawAttribute(ImmutableArray<string> Endpoints);
+internal record class ButtplugDeviceVoidAttribute();
 
-public record class ButtplugDeviceAttributes
+internal record class ButtplugDeviceAttributes
 {
     public ImmutableArray<ButtplugDeviceActuatorAttribute> ScalarCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
     public ImmutableArray<ButtplugDeviceActuatorAttribute> RotateCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();

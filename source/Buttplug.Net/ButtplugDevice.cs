@@ -72,7 +72,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public ButtplugDeviceActuator? GetActuator(uint actuatorIndex, ActuatorType actuatorType)
         => GetActuators(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
     public ButtplugDeviceActuator? GetActuator(ActuatorIdentifier actuatorIdentifier)
-        => GetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType); 
+        => GetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType);
     public TActuator? GetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType) where TActuator : ButtplugDeviceActuator
         => GetActuators<TActuator>(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
     public TActuator? GetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier) where TActuator : ButtplugDeviceActuator

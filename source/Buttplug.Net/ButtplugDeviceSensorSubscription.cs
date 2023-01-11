@@ -2,32 +2,33 @@
 
 namespace Buttplug;
 
-public delegate void SensorSubscriptionReadingCallback(ButtplugDevice device, uint sensorIndex, SensorType sensorType, ImmutableArray<int> data);
-public delegate Task ButtplugDeviceSensorSubscriptionUnsubscribe(SensorAttributeIdentifier indentifier, CancellationToken cancellationToken);
+public delegate void ButtplugDeviceSensorSubscriptionReadingCallback(ButtplugDevice device, SensorAttributeIdentifier sensorIdentifier, ImmutableArray<int> data);
+public delegate Task ButtplugDeviceSensorSubscriptionUnsubscribe(SensorAttributeIdentifier sensorIdentifier, CancellationToken cancellationToken);
 
 public record class ButtplugDeviceSensorSubscription
 {
-    private readonly SensorSubscriptionReadingCallback _readingCallback;
+    private readonly ButtplugDeviceSensorSubscriptionReadingCallback _readingCallback;
     private readonly ButtplugDeviceSensorSubscriptionUnsubscribe _unsubscribe;
 
     public ButtplugDevice Device { get; }
-    public uint SensorIndex { get; }
-    public SensorType SensorType { get; }
+    public SensorAttributeIdentifier SensorIdentifier { get; }
 
-    internal ButtplugDeviceSensorSubscription(ButtplugDevice device, uint sensorIndex, SensorType sensorType,
-        SensorSubscriptionReadingCallback readingCallback, ButtplugDeviceSensorSubscriptionUnsubscribe unsubscribeCallback)
+    public uint SensorIndex => SensorIdentifier.Index;
+    public SensorType SensorType => SensorIdentifier.SensorType;
+
+    internal ButtplugDeviceSensorSubscription(ButtplugDevice device, SensorAttributeIdentifier sensorIdentifier,
+        ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, ButtplugDeviceSensorSubscriptionUnsubscribe unsubscribe)
     {
         _readingCallback = readingCallback;
-        _unsubscribe = unsubscribeCallback;
+        _unsubscribe = unsubscribe;
 
         Device = device;
-        SensorIndex = sensorIndex;
-        SensorType = sensorType;
+        SensorIdentifier = sensorIdentifier;
     }
 
     internal void HandleReadingData(ImmutableArray<int> data)
-        => _readingCallback(Device, SensorIndex, SensorType, data);
+        => _readingCallback(Device, SensorIdentifier, data);
 
     public async Task UnsubscribeAsync(CancellationToken cancellationToken)
-        => await _unsubscribe.Invoke(new(SensorIndex, SensorType), cancellationToken).ConfigureAwait(false);
+        => await _unsubscribe.Invoke(SensorIdentifier, cancellationToken).ConfigureAwait(false);
 }

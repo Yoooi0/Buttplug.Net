@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\source\Buttplug.Net.SystemTextJson\Buttplug.Net.SystemTextJson.csproj" />
+		<ProjectReference Include="..\..\source\Buttplug.Net\Buttplug.Net.csproj" />
+	</ItemGroup>
+
+</Project>

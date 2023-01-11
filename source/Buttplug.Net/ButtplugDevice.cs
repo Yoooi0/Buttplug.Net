@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -11,8 +11,8 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     private readonly ImmutableArray<ButtplugDeviceScalarActuator> _scalarActuators;
     private readonly ImmutableArray<ButtplugDeviceReadSensor> _readSensors;
     private readonly ImmutableArray<ButtplugDeviceSubscribeSensor> _subscribeSensors;
-
     private readonly ConcurrentDictionary<SensorIdentifier, ButtplugDeviceSensorSubscription> _sensorSubscriptions;
+
     private IButtplugSender? _sender;
 
     public uint Index { get; }
@@ -20,12 +20,9 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public string DisplayName { get; }
     public uint MessageTimingGap { get; }
 
-    public IEnumerable<ActuatorType> SupportedActuatorTypes
-        => Actuators.Select(a => a.ActuatorType).Distinct();
-    public IEnumerable<SensorType> SupportedSensorTypes
-        => ReadSensors.Select(c => c.SensorType).Distinct();
-    public IEnumerable<SensorType> SupportedSubscribeSensorTypes
-        => SubscribeSensors.Select(c => c.SensorType).Distinct();
+    public IEnumerable<ActuatorType> SupportedActuatorTypes => Actuators.Select(a => a.ActuatorType).Distinct();
+    public IEnumerable<SensorType> SupportedSensorTypes => ReadSensors.Select(c => c.SensorType).Distinct();
+    public IEnumerable<SensorType> SupportedSubscribeSensorTypes => SubscribeSensors.Select(c => c.SensorType).Distinct();
 
     public IEnumerable<ButtplugDeviceActuator> Actuators => LinearActuators.Concat<ButtplugDeviceActuator>(RotateActuators).Concat(ScalarActuators);
     public IReadOnlyList<ButtplugDeviceLinearActuator> LinearActuators => _linearActuators;
@@ -95,7 +92,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public bool TryGetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
         => (actuator = GetActuator<TActuator>(actuatorIndex, actuatorType)) != null;
     public bool TryGetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
-        => TryGetActuator<TActuator>(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType, out actuator);
+        => TryGetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType, out actuator);
 
     public bool TryGetReadSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceReadSensor sensor)
         => (sensor = GetReadSensor(sensorIndex, sensorType)) != null;

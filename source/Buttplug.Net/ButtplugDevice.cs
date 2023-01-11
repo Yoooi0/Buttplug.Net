@@ -60,6 +60,8 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 
     public IEnumerable<ButtplugDeviceActuator> GetActuators(ActuatorType actuatorType)
         => Actuators.Where(a => a.ActuatorType == actuatorType);
+    public IEnumerable<TActuator> GetActuators<TActuator>(ActuatorType actuatorType) where TActuator : ButtplugDeviceActuator
+        => Actuators.Where(a => a.ActuatorType == actuatorType).OfType<TActuator>();
 
     public IEnumerable<ButtplugDeviceReadSensor> GetReadSensors(SensorType sensorType)
         => ReadSensors.Where(c => c.SensorType == sensorType);
@@ -70,7 +72,11 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public ButtplugDeviceActuator? GetActuator(uint actuatorIndex, ActuatorType actuatorType)
         => GetActuators(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
     public ButtplugDeviceActuator? GetActuator(ActuatorIdentifier actuatorIdentifier)
-        => GetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType);
+        => GetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType); 
+    public TActuator? GetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType) where TActuator : ButtplugDeviceActuator
+        => GetActuators<TActuator>(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
+    public TActuator? GetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier) where TActuator : ButtplugDeviceActuator
+        => GetActuator<TActuator>(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType);
 
     public ButtplugDeviceReadSensor? GetReadSensor(uint sensorIndex, SensorType sensorType)
         => ReadSensors.SingleOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType);
@@ -86,6 +92,10 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         => (actuator = GetActuator(actuatorIndex, actuatorType)) != null;
     public bool TryGetActuator(ActuatorIdentifier actuatorIdentifier, [MaybeNullWhen(false)] out ButtplugDeviceActuator actuator)
         => TryGetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType, out actuator);
+    public bool TryGetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
+        => (actuator = GetActuator<TActuator>(actuatorIndex, actuatorType)) != null;
+    public bool TryGetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
+        => TryGetActuator<TActuator>(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType, out actuator);
 
     public bool TryGetReadSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceReadSensor sensor)
         => (sensor = GetReadSensor(sensorIndex, sensorType)) != null;

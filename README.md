@@ -1,5 +1,10 @@
 ﻿Buttplug.Net is a buttplug client library written in modern .Net
 
+[![Release](https://img.shields.io/nuget/v/Buttplug.Net?label=release&logo=nuget)](https://www.nuget.org/packages/Buttplug.Net)
+[![Pre-Release](https://img.shields.io/nuget/vpre/Buttplug.Net?label=pre-release&logo=nuget)](https://www.nuget.org/packages/Buttplug.Net)
+[![Build](https://img.shields.io/github/actions/workflow/status/Yoooi0/Buttplug.Net/ci.yml?logo=github)](https://github.com/Yoooi0/Buttplug.Net/actions)
+
+
 ## ⚙️ Installation
 
 Stable and prerelease builds are available from Nuget:
@@ -17,18 +22,11 @@ var cancellationToken = CancellationToken.None;
 var converter = new ButtplugSystemTextJsonConverter();
 await using var client = new ButtplugClient("Buttplug.Net", converter);
 
-client.DeviceAdded += (_, e) => Console.WriteLine($"Device added: {e}");
-client.DeviceRemoved += (_, e) => Console.WriteLine($"Device removed: {e}");
-client.ScanningFinished += (_, e) => Console.WriteLine("Scanning finished");
-client.UnhandledException += (_, e) => Console.WriteLine($"Error received: {e}");
-client.Disconnected += (_, e) => Console.WriteLine("Disconnected");
-
 await client.ConnectAsync(new Uri("ws://127.0.0.1:12345/"), cancellationToken);
 Console.WriteLine("Connected");
 
 await client.StartScanningAsync(cancellationToken);
-await Task.Delay(1000);
-await client.StopScanningAsync(cancellationToken);
+await Task.Delay(2500);
 
 foreach (var device in client.Devices)
     await device.ScalarAsync(1, ActuatorType.Vibrate, cancellationToken);
@@ -36,3 +34,5 @@ foreach (var device in client.Devices)
 await Task.Delay(1000);
 await client.StopAllDevicesAsync(cancellationToken);
 ```
+
+> More samples available **[here](https://github.com/Yoooi0/Buttplug.Net/tree/master/samples)**

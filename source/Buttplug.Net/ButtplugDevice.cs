@@ -34,7 +34,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public IReadOnlyList<ButtplugDeviceSubscribeSensor> SubscribeSensors => _subscribeSensors;
     public IReadOnlyList<ButtplugDeviceSensorSubscription> SensorSubscriptions => (IReadOnlyList<ButtplugDeviceSensorSubscription>)_sensorSubscriptions.Values;
 
-    internal ButtplugDevice(IButtplugSender sender, ButtplugMessageDeviceInfo info)
+    internal ButtplugDevice(IButtplugSender sender, ButtplugDeviceInfo info)
     {
         _sender = sender;
         _sensorSubscriptions = new ConcurrentDictionary<SensorIdentifier, ButtplugDeviceSensorSubscription>();

@@ -32,36 +32,8 @@ internal enum ErrorButtplugMessageCode
 [ButtplugMessageName("Error")]
 internal record class ErrorButtplugMessage(uint Id, string ErrorMessage, ErrorButtplugMessageCode ErrorCode) : IButtplugMessage;
 
-internal record class ButtplugDeviceActuatorAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount)
-{
-    public uint Index { get; internal set; }
-}
-
-internal record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, SensorType SensorType, ImmutableArray<ImmutableArray<uint>> SensorRange)
-{
-    public uint Index { get; internal set; }
-}
-
-internal record class ButtplugDeviceRawAttribute(ImmutableArray<string> Endpoints);
-internal record class ButtplugDeviceVoidAttribute();
-
-internal record class ButtplugDeviceAttributes
-{
-    public ImmutableArray<ButtplugDeviceActuatorAttribute> ScalarCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
-    public ImmutableArray<ButtplugDeviceActuatorAttribute> RotateCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
-    public ImmutableArray<ButtplugDeviceActuatorAttribute> LinearCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
-    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorReadCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceSensorAttribute>();
-    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorSubscribeCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceSensorAttribute>();
-    public ImmutableArray<ButtplugDeviceRawAttribute> RawReadCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
-    public ImmutableArray<ButtplugDeviceRawAttribute> RawWriteCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
-    public ImmutableArray<ButtplugDeviceRawAttribute> RawSubscribeCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
-    public ButtplugDeviceVoidAttribute? StopDeviceCmd { get; init; }
-}
-
-internal record class ButtplugMessageDeviceInfo(string DeviceName, uint DeviceIndex, string DeviceDisplayName, uint DeviceMessageTimingGap, ButtplugDeviceAttributes DeviceMessages);
-
 [ButtplugMessageName("DeviceList")]
-internal record class DeviceListButtplugMessage(uint Id, ImmutableArray<ButtplugMessageDeviceInfo> Devices) : IButtplugMessage;
+internal record class DeviceListButtplugMessage(uint Id, ImmutableArray<ButtplugDeviceInfo> Devices) : IButtplugMessage;
 
 [ButtplugMessageName("RequestDeviceList")]
 internal record class RequestDeviceListButtplugMessage() : AutoIncrementingButtplugMessage;
@@ -86,3 +58,27 @@ internal record class PingButtplugMessage() : AutoIncrementingButtplugMessage;
 
 [ButtplugMessageName("StopAllDevices")]
 internal record class StopAllDevicesButtplugMessage() : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("DeviceRemoved")]
+internal record class DeviceRemovedButtplugMessage(uint DeviceIndex) : IButtplugDeviceMessage { public uint Id => 0; }
+
+[ButtplugMessageName("ScalarCmd")]
+internal record class ScalarCommandButtplugMessage(uint DeviceIndex, IEnumerable<ScalarCommand> Scalars) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("RotateCmd")]
+internal record class RotateCommandButtplugMessage(uint DeviceIndex, IEnumerable<RotateCommand> Rotations) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("LinearCmd")]
+internal record class LinearCommandButtplugMessage(uint DeviceIndex, IEnumerable<LinearCommand> Vectors) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("StopDeviceCmd")]
+internal record class StopDeviceCommandButtplugMessage(uint DeviceIndex) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("SensorReadCmd")]
+internal record class SensorReadCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("SensorSubscribeCmd")]
+internal record class SensorSubscribeCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("SensorUnsubscribeCmd")]
+internal record class SensorUnsubscribeCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;

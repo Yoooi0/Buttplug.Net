@@ -25,14 +25,14 @@ public class ButtplugSystemTextJsonConverter : ButtplugMessageJsonConverter
     public override string Serialize(IEnumerable<IButtplugMessage> messages)
     {
         var array = new JsonArray(_nodeOptions);
-        foreach (var messageObject in messages.Select(ButtplugMessageToJObject))
+        foreach (var messageObject in messages.Select(ToJsonObject))
             array.Add(messageObject);
 
         return JsonSerializer.Serialize(array, _serializerOptions);
-    }
 
-    private JsonObject ButtplugMessageToJObject(IButtplugMessage message)
-        => new() { [GetMessageName(message)] = JsonSerializer.SerializeToNode(message, message.GetType(), _serializerOptions)! };
+        JsonObject ToJsonObject(IButtplugMessage message)
+            => new() { [GetMessageName(message)] = JsonSerializer.SerializeToNode(message, message.GetType(), _serializerOptions)! };
+    }
 
     public override IEnumerable<IButtplugMessage> Deserialize(string json)
     {

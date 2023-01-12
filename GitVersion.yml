@@ -1,3 +1,2 @@
 assembly-informational-format: '{FullSemVer}.{ShortSha}'
 mode: ContinuousDeployment
-increment: Minor

@@ -36,6 +36,9 @@ jobs:
             /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} \
             /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} \
             /p:Version=${{ steps.gitversion.outputs.nuGetVersion }}
+      - name: Test
+        run: |
+          dotnet test --configuration Release --no-build --verbosity normal
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:

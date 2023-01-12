@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -32,7 +32,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public IEnumerable<ButtplugDeviceSensor> Sensors => ReadSensors.Concat<ButtplugDeviceSensor>(SubscribeSensors);
     public IReadOnlyList<ButtplugDeviceReadSensor> ReadSensors => _readSensors;
     public IReadOnlyList<ButtplugDeviceSubscribeSensor> SubscribeSensors => _subscribeSensors;
-    public ICollection<ButtplugDeviceSensorSubscription> SensorSubscriptions => _sensorSubscriptions.Values;
+    public IReadOnlyList<ButtplugDeviceSensorSubscription> SensorSubscriptions => (IReadOnlyList<ButtplugDeviceSensorSubscription>)_sensorSubscriptions.Values;
 
     internal ButtplugDevice(IButtplugSender sender, ButtplugMessageDeviceInfo info)
     {

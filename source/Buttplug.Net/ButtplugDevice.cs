@@ -21,7 +21,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public uint MessageTimingGap { get; }
 
     public IEnumerable<ActuatorType> SupportedActuatorTypes => Actuators.Select(a => a.ActuatorType).Distinct();
-    public IEnumerable<SensorType> SupportedSensorTypes => ReadSensors.Select(c => c.SensorType).Distinct();
+    public IEnumerable<SensorType> SupportedReadSensorTypes => ReadSensors.Select(c => c.SensorType).Distinct();
     public IEnumerable<SensorType> SupportedSubscribeSensorTypes => SubscribeSensors.Select(c => c.SensorType).Distinct();
 
     public IEnumerable<ButtplugDeviceActuator> Actuators => LinearActuators.Concat<ButtplugDeviceActuator>(RotateActuators).Concat(ScalarActuators);
@@ -146,11 +146,11 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         await LinearAsync(new[] { new LinearCommand(actuatorIdentifier.Index, duration, position) }, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableArray<int>> SensorAsync(SensorType sensorType, CancellationToken cancellationToken)
-        => await SensorAsync(GetSensors<ButtplugDeviceReadSensor>(sensorType).First().Index, sensorType, cancellationToken).ConfigureAwait(false);
-    public async Task<ImmutableArray<int>> SensorAsync(SensorIdentifier sensorIdentifier, CancellationToken cancellationToken)
-        => await SensorAsync(sensorIdentifier.Index, sensorIdentifier.SensorType, cancellationToken).ConfigureAwait(false);
-    public async Task<ImmutableArray<int>> SensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<int>> ReadSensorAsync(SensorType sensorType, CancellationToken cancellationToken)
+        => await ReadSensorAsync(GetSensors<ButtplugDeviceReadSensor>(sensorType).First().Index, sensorType, cancellationToken).ConfigureAwait(false);
+    public async Task<ImmutableArray<int>> ReadSensorAsync(SensorIdentifier sensorIdentifier, CancellationToken cancellationToken)
+        => await ReadSensorAsync(sensorIdentifier.Index, sensorIdentifier.SensorType, cancellationToken).ConfigureAwait(false);
+    public async Task<ImmutableArray<int>> ReadSensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
     {
         var response = await SendMessageExpectTAsync<SensorReadingButtplugMessage>(new SensorReadCommandButtplugMessage(Index, sensorIndex, sensorType), cancellationToken).ConfigureAwait(false);
         return response.Data;

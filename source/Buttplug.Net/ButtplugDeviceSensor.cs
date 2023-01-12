@@ -36,7 +36,7 @@ public record class ButtplugDeviceReadSensor : ButtplugDeviceSensor
         : base(device, index, attribute) { }
 
     public async Task<ImmutableArray<int>> ReadAsync(CancellationToken cancellationToken)
-        => await Device.SensorAsync(Index, SensorType, cancellationToken).ConfigureAwait(false);
+        => await Device.ReadSensorAsync(Index, SensorType, cancellationToken).ConfigureAwait(false);
 }
 
 public record class ButtplugDeviceSubscribeSensor : ButtplugDeviceSensor

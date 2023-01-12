@@ -58,13 +58,12 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public IEnumerable<ButtplugDeviceActuator> GetActuators(ActuatorType actuatorType)
         => Actuators.Where(a => a.ActuatorType == actuatorType);
     public IEnumerable<TActuator> GetActuators<TActuator>(ActuatorType actuatorType) where TActuator : ButtplugDeviceActuator
-        => Actuators.Where(a => a.ActuatorType == actuatorType).OfType<TActuator>();
+        => GetActuators(actuatorType).OfType<TActuator>();
 
-    public IEnumerable<ButtplugDeviceReadSensor> GetReadSensors(SensorType sensorType)
-        => ReadSensors.Where(c => c.SensorType == sensorType);
-
-    public IEnumerable<ButtplugDeviceSubscribeSensor> GetSubscribeSensors(SensorType sensorType)
-        => SubscribeSensors.Where(c => c.SensorType == sensorType);
+    public IEnumerable<ButtplugDeviceSensor> GetSensors(SensorType sensorType)
+        => Sensors.Where(c => c.SensorType == sensorType);
+    public IEnumerable<TSensor> GetSensors<TSensor>(SensorType sensorType) where TSensor : ButtplugDeviceSensor
+        => GetSensors(sensorType).OfType<TSensor>();
 
     public ButtplugDeviceActuator? GetActuator(uint actuatorIndex, ActuatorType actuatorType)
         => GetActuators(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
@@ -75,15 +74,14 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public TActuator? GetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier) where TActuator : ButtplugDeviceActuator
         => GetActuator<TActuator>(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType);
 
-    public ButtplugDeviceReadSensor? GetReadSensor(uint sensorIndex, SensorType sensorType)
-        => ReadSensors.SingleOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType);
-    public ButtplugDeviceReadSensor? GetReadSensor(SensorIdentifier sensorIdentifier)
-        => GetReadSensor(sensorIdentifier.Index, sensorIdentifier.SensorType);
-
-    public ButtplugDeviceSubscribeSensor? GetSubscribeSensor(uint sensorIndex, SensorType sensorType)
-        => SubscribeSensors.SingleOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType);
-    public ButtplugDeviceSubscribeSensor? GetSubscribeSensor(SensorIdentifier sensorIdentifier)
-        => GetSubscribeSensor(sensorIdentifier.Index, sensorIdentifier.SensorType);
+    public ButtplugDeviceSensor? GetSensor(uint sensorIndex, SensorType sensorType)
+        => GetSensors(sensorType).SingleOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType);
+    public ButtplugDeviceSensor? GetSensor(SensorIdentifier sensorIdentifier)
+        => GetSensor(sensorIdentifier.Index, sensorIdentifier.SensorType);
+    public TSensor? GetSensor<TSensor>(uint sensorIndex, SensorType sensorType) where TSensor : ButtplugDeviceSensor
+        => GetSensors<TSensor>(sensorType).SingleOrDefault(a => a.Index == sensorIndex && a.SensorType == sensorType);
+    public TSensor? GetSensor<TSensor>(SensorIdentifier sensorIdentifier) where TSensor : ButtplugDeviceSensor
+        => GetSensor<TSensor>(sensorIdentifier.Index, sensorIdentifier.SensorType);
 
     public bool TryGetActuator(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out ButtplugDeviceActuator actuator)
         => (actuator = GetActuator(actuatorIndex, actuatorType)) != null;
@@ -94,15 +92,14 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public bool TryGetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
         => TryGetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType, out actuator);
 
-    public bool TryGetReadSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceReadSensor sensor)
-        => (sensor = GetReadSensor(sensorIndex, sensorType)) != null;
-    public bool TryGetReadSensor(SensorIdentifier sensorIdentifier, [MaybeNullWhen(false)] out ButtplugDeviceReadSensor sensor)
-        => TryGetReadSensor(sensorIdentifier.Index, sensorIdentifier.SensorType, out sensor);
-
-    public bool TryGetSubscribeSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceSubscribeSensor sensor)
-        => (sensor = GetSubscribeSensor(sensorIndex, sensorType)) != null;
-    public bool TryGetSubscribeSensor(SensorIdentifier sensorIdentifier, [MaybeNullWhen(false)] out ButtplugDeviceSubscribeSensor sensor)
-        => TryGetSubscribeSensor(sensorIdentifier.Index, sensorIdentifier.SensorType, out sensor);
+    public bool TryGetSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceSensor sensor)
+        => (sensor = GetSensor(sensorIndex, sensorType)) != null;
+    public bool TryGetSensor(SensorIdentifier sensorIdentifier, [MaybeNullWhen(false)] out ButtplugDeviceSensor sensor)
+        => TryGetSensor(sensorIdentifier.Index, sensorIdentifier.SensorType, out sensor);
+    public bool TryGetSensor<TSensor>(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out TSensor sensor) where TSensor : ButtplugDeviceSensor
+        => (sensor = GetSensor<TSensor>(sensorIndex, sensorType)) != null;
+    public bool TryGetSensor<TSensor>(SensorIdentifier sensorIdentifier, [MaybeNullWhen(false)] out TSensor sensor) where TSensor : ButtplugDeviceSensor
+        => TryGetSensor(sensorIdentifier.Index, sensorIdentifier.SensorType, out sensor);
 
     public async Task ScalarAsync(double scalar, ActuatorType actuatorType, CancellationToken cancellationToken)
         => await ScalarAsync(Enumerable.Range(0, ScalarActuators.Count).Select(i => new ScalarCommand((uint)i, scalar, actuatorType)), cancellationToken).ConfigureAwait(false);
@@ -150,7 +147,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     }
 
     public async Task<ImmutableArray<int>> SensorAsync(SensorType sensorType, CancellationToken cancellationToken)
-        => await SensorAsync(GetReadSensors(sensorType).First().Index, sensorType, cancellationToken).ConfigureAwait(false);
+        => await SensorAsync(GetSensors<ButtplugDeviceReadSensor>(sensorType).First().Index, sensorType, cancellationToken).ConfigureAwait(false);
     public async Task<ImmutableArray<int>> SensorAsync(SensorIdentifier sensorIdentifier, CancellationToken cancellationToken)
         => await SensorAsync(sensorIdentifier.Index, sensorIdentifier.SensorType, cancellationToken).ConfigureAwait(false);
     public async Task<ImmutableArray<int>> SensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
@@ -160,7 +157,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     }
 
     public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(SensorType sensorType, ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
-        => await SubscribeSensorAsync(new SensorIdentifier(GetSubscribeSensors(sensorType).First().Index, sensorType), readingCallback, cancellationToken).ConfigureAwait(false);
+        => await SubscribeSensorAsync(new SensorIdentifier(GetSensors<ButtplugDeviceSubscribeSensor>(sensorType).First().Index, sensorType), readingCallback, cancellationToken).ConfigureAwait(false);
     public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(uint sensorIndex, SensorType sensorType, ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
         => await SubscribeSensorAsync(new SensorIdentifier(sensorIndex, sensorType), readingCallback, cancellationToken).ConfigureAwait(false);
     public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(SensorIdentifier sensorIdentifier, ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)

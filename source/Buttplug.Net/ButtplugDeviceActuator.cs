@@ -11,8 +11,6 @@ public enum ActuatorType
     Position
 }
 
-public readonly record struct ActuatorIdentifier(uint Index, ActuatorType ActuatorType);
-
 public readonly record struct ScalarCommand(uint Index, double Scalar, ActuatorType ActuatorType);
 public readonly record struct RotateCommand(uint Index, double Speed, bool Clockwise);
 public readonly record struct LinearCommand(uint Index, double Duration, double Position);

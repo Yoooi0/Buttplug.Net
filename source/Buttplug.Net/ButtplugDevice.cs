@@ -11,7 +11,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     private readonly ImmutableArray<ButtplugDeviceScalarActuator> _scalarActuators;
     private readonly ImmutableArray<ButtplugDeviceReadSensor> _readSensors;
     private readonly ImmutableArray<ButtplugDeviceSubscribeSensor> _subscribeSensors;
-    private readonly ConcurrentDictionary<SensorIdentifier, ButtplugDeviceSensorSubscription> _sensorSubscriptions;
+    private readonly ConcurrentDictionary<ButtplugDeviceSubscribeSensor, ButtplugDeviceSensorSubscription> _sensorSubscriptions;
 
     private IButtplugSender? _sender;
 
@@ -37,7 +37,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     internal ButtplugDevice(IButtplugSender sender, ButtplugDeviceInfo info)
     {
         _sender = sender;
-        _sensorSubscriptions = new ConcurrentDictionary<SensorIdentifier, ButtplugDeviceSensorSubscription>();
+        _sensorSubscriptions = new ConcurrentDictionary<ButtplugDeviceSubscribeSensor, ButtplugDeviceSensorSubscription>();
 
         var attributes = info.DeviceMessages;
 
@@ -65,91 +65,55 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public IEnumerable<TSensor> GetSensors<TSensor>(SensorType sensorType) where TSensor : ButtplugDeviceSensor
         => GetSensors(sensorType).OfType<TSensor>();
 
-    public ButtplugDeviceActuator? GetActuator(uint actuatorIndex, ActuatorType actuatorType)
-        => GetActuators(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
-    public ButtplugDeviceActuator? GetActuator(ActuatorIdentifier actuatorIdentifier)
-        => GetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType);
-    public TActuator? GetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType) where TActuator : ButtplugDeviceActuator
-        => GetActuators<TActuator>(actuatorType).SingleOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
-    public TActuator? GetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier) where TActuator : ButtplugDeviceActuator
-        => GetActuator<TActuator>(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType);
+    public ButtplugDeviceActuator GetActuator(uint actuatorIndex, ActuatorType actuatorType)
+        => GetActuators(actuatorType).Single(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
+    public TActuator GetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType) where TActuator : ButtplugDeviceActuator
+        => GetActuators<TActuator>(actuatorType).Single(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType);
 
-    public ButtplugDeviceSensor? GetSensor(uint sensorIndex, SensorType sensorType)
-        => GetSensors(sensorType).SingleOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType);
-    public ButtplugDeviceSensor? GetSensor(SensorIdentifier sensorIdentifier)
-        => GetSensor(sensorIdentifier.Index, sensorIdentifier.SensorType);
-    public TSensor? GetSensor<TSensor>(uint sensorIndex, SensorType sensorType) where TSensor : ButtplugDeviceSensor
-        => GetSensors<TSensor>(sensorType).SingleOrDefault(a => a.Index == sensorIndex && a.SensorType == sensorType);
-    public TSensor? GetSensor<TSensor>(SensorIdentifier sensorIdentifier) where TSensor : ButtplugDeviceSensor
-        => GetSensor<TSensor>(sensorIdentifier.Index, sensorIdentifier.SensorType);
+    public ButtplugDeviceSensor GetSensor(uint sensorIndex, SensorType sensorType)
+        => GetSensors(sensorType).Single(s => s.Index == sensorIndex && s.SensorType == sensorType);
+    public TSensor GetSensor<TSensor>(uint sensorIndex, SensorType sensorType) where TSensor : ButtplugDeviceSensor
+        => GetSensors<TSensor>(sensorType).Single(a => a.Index == sensorIndex && a.SensorType == sensorType);
 
     public bool TryGetActuator(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out ButtplugDeviceActuator actuator)
         => (actuator = GetActuator(actuatorIndex, actuatorType)) != null;
-    public bool TryGetActuator(ActuatorIdentifier actuatorIdentifier, [MaybeNullWhen(false)] out ButtplugDeviceActuator actuator)
-        => TryGetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType, out actuator);
     public bool TryGetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
         => (actuator = GetActuator<TActuator>(actuatorIndex, actuatorType)) != null;
-    public bool TryGetActuator<TActuator>(ActuatorIdentifier actuatorIdentifier, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
-        => TryGetActuator(actuatorIdentifier.Index, actuatorIdentifier.ActuatorType, out actuator);
 
     public bool TryGetSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceSensor sensor)
         => (sensor = GetSensor(sensorIndex, sensorType)) != null;
-    public bool TryGetSensor(SensorIdentifier sensorIdentifier, [MaybeNullWhen(false)] out ButtplugDeviceSensor sensor)
-        => TryGetSensor(sensorIdentifier.Index, sensorIdentifier.SensorType, out sensor);
     public bool TryGetSensor<TSensor>(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out TSensor sensor) where TSensor : ButtplugDeviceSensor
         => (sensor = GetSensor<TSensor>(sensorIndex, sensorType)) != null;
-    public bool TryGetSensor<TSensor>(SensorIdentifier sensorIdentifier, [MaybeNullWhen(false)] out TSensor sensor) where TSensor : ButtplugDeviceSensor
-        => TryGetSensor(sensorIdentifier.Index, sensorIdentifier.SensorType, out sensor);
 
     public async Task ScalarAsync(double scalar, ActuatorType actuatorType, CancellationToken cancellationToken)
-        => await ScalarAsync(Enumerable.Range(0, ScalarActuators.Count).Select(i => new ScalarCommand((uint)i, scalar, actuatorType)), cancellationToken).ConfigureAwait(false);
+        => await ScalarAsync(ScalarActuators.Select(a => new ScalarCommand(a.Index, scalar, actuatorType)), cancellationToken).ConfigureAwait(false);
+    public async Task ScalarAsync(double scalar, uint actuatorIndex, ActuatorType actuatorType, CancellationToken cancellationToken)
+        => await ScalarAsync(new ScalarCommand(actuatorIndex, scalar, actuatorType), cancellationToken).ConfigureAwait(false);
     public async Task ScalarAsync(ScalarCommand scalarCommand, CancellationToken cancellationToken)
         => await ScalarAsync(new[] { scalarCommand }, cancellationToken).ConfigureAwait(false);
-    public async Task ScalarAsync(double scalar, ActuatorIdentifier actuatorIdentifier, CancellationToken cancellationToken)
-        => await ScalarAsync(new[] { new ScalarCommand(actuatorIdentifier.Index, scalar, actuatorIdentifier.ActuatorType) }, cancellationToken).ConfigureAwait(false);
-    public async Task ScalarAsync(IEnumerable<(double Scalar, ActuatorType ActuatorType)> scalarCommands, CancellationToken cancellationToken)
-        => await ScalarAsync(scalarCommands.Select((c, i) => new ScalarCommand((uint)i, c.Scalar, c.ActuatorType)), cancellationToken).ConfigureAwait(false);
     public async Task ScalarAsync(IEnumerable<ScalarCommand> scalarCommands, CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new ScalarCommandButtplugMessage(Index, scalarCommands), cancellationToken).ConfigureAwait(false);
 
     public async Task RotateAsync(double speed, bool clockwise, CancellationToken cancellationToken)
-        => await RotateAsync(Enumerable.Range(0, RotateActuators.Count).Select(i => new RotateCommand((uint)i, speed, clockwise)), cancellationToken).ConfigureAwait(false);
+        => await RotateAsync(RotateActuators.Select(a => new RotateCommand(a.Index, speed, clockwise)), cancellationToken).ConfigureAwait(false);
+    public async Task RotateAsync(double speed, bool clockwise, uint actuatorIndex, CancellationToken cancellationToken)
+        => await RotateAsync(new RotateCommand(actuatorIndex, speed, clockwise), cancellationToken).ConfigureAwait(false);
     public async Task RotateAsync(RotateCommand rotateCommand, CancellationToken cancellationToken)
         => await RotateAsync(new[] { rotateCommand }, cancellationToken).ConfigureAwait(false);
-    public async Task RotateAsync(IEnumerable<(double Speed, bool Clockwise)> rotateCommands, CancellationToken cancellationToken)
-        => await RotateAsync(rotateCommands.Select((c, i) => new RotateCommand((uint)i, c.Speed, c.Clockwise)), cancellationToken).ConfigureAwait(false);
     public async Task RotateAsync(IEnumerable<RotateCommand> rotateCommands, CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new RotateCommandButtplugMessage(Index, rotateCommands), cancellationToken).ConfigureAwait(false);
 
     public async Task LinearAsync(uint duration, double position, CancellationToken cancellationToken)
-        => await LinearAsync(Enumerable.Range(0, LinearActuators.Count).Select(i => new LinearCommand((uint)i, duration, position)), cancellationToken).ConfigureAwait(false);
+        => await LinearAsync(LinearActuators.Select(a => new LinearCommand(a.Index, duration, position)), cancellationToken).ConfigureAwait(false);
+    public async Task LinearAsync(uint duration, double position, uint actuatorIndex, CancellationToken cancellationToken)
+        => await LinearAsync(new LinearCommand(actuatorIndex, duration, position), cancellationToken).ConfigureAwait(false);
     public async Task LinearAsync(LinearCommand linearCommand, CancellationToken cancellationToken)
         => await LinearAsync(new[] { linearCommand }, cancellationToken).ConfigureAwait(false);
-    public async Task LinearAsync(IEnumerable<(uint Duration, double Position)> linearCommands, CancellationToken cancellationToken)
-        => await LinearAsync(linearCommands.Select((c, i) => new LinearCommand((uint)i, c.Duration, c.Position)), cancellationToken).ConfigureAwait(false);
     public async Task LinearAsync(IEnumerable<LinearCommand> linearCommands, CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new LinearCommandButtplugMessage(Index, linearCommands), cancellationToken).ConfigureAwait(false);
 
-    public async Task RotateAsync(double speed, bool clockwise, ActuatorIdentifier actuatorIdentifier, CancellationToken cancellationToken)
-    {
-        if (actuatorIdentifier.ActuatorType != ActuatorType.Rotate)
-            throw new ButtplugException("Invalid actuator identifier type");
-
-        await RotateAsync(new[] { new RotateCommand(actuatorIdentifier.Index, speed, clockwise) }, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task LinearAsync(uint duration, double position, ActuatorIdentifier actuatorIdentifier, CancellationToken cancellationToken)
-    {
-        if (actuatorIdentifier.ActuatorType != ActuatorType.Position)
-            throw new ButtplugException("Invalid actuator identifier type");
-
-        await LinearAsync(new[] { new LinearCommand(actuatorIdentifier.Index, duration, position) }, cancellationToken).ConfigureAwait(false);
-    }
-
     public async Task<ImmutableArray<int>> ReadSensorAsync(SensorType sensorType, CancellationToken cancellationToken)
         => await ReadSensorAsync(GetSensors<ButtplugDeviceReadSensor>(sensorType).First().Index, sensorType, cancellationToken).ConfigureAwait(false);
-    public async Task<ImmutableArray<int>> ReadSensorAsync(SensorIdentifier sensorIdentifier, CancellationToken cancellationToken)
-        => await ReadSensorAsync(sensorIdentifier.Index, sensorIdentifier.SensorType, cancellationToken).ConfigureAwait(false);
     public async Task<ImmutableArray<int>> ReadSensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
     {
         var response = await SendMessageExpectTAsync<SensorReadingButtplugMessage>(new SensorReadCommandButtplugMessage(Index, sensorIndex, sensorType), cancellationToken).ConfigureAwait(false);
@@ -157,30 +121,32 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     }
 
     public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(SensorType sensorType, ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
-        => await SubscribeSensorAsync(new SensorIdentifier(GetSensors<ButtplugDeviceSubscribeSensor>(sensorType).First().Index, sensorType), readingCallback, cancellationToken).ConfigureAwait(false);
+        => await SubscribeSensorAsync(GetSensors<ButtplugDeviceSubscribeSensor>(sensorType).First(), readingCallback, cancellationToken).ConfigureAwait(false);
     public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(uint sensorIndex, SensorType sensorType, ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
-        => await SubscribeSensorAsync(new SensorIdentifier(sensorIndex, sensorType), readingCallback, cancellationToken).ConfigureAwait(false);
-    public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(SensorIdentifier sensorIdentifier, ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
+        => await SubscribeSensorAsync(GetSensor<ButtplugDeviceSubscribeSensor>(sensorIndex, sensorType), readingCallback, cancellationToken).ConfigureAwait(false);
+    public async Task<ButtplugDeviceSensorSubscription> SubscribeSensorAsync(ButtplugDeviceSubscribeSensor sensor, ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
     {
-        if (_sensorSubscriptions.ContainsKey(sensorIdentifier))
+        if (_sensorSubscriptions.ContainsKey(sensor))
             throw new ButtplugException("Cannot subscribe to the same sensor multiple times");
 
-        await SendMessageExpectTAsync<OkButtplugMessage>(new SensorSubscribeCommandButtplugMessage(Index, sensorIdentifier.Index, sensorIdentifier.SensorType), cancellationToken).ConfigureAwait(false);
+        await SendMessageExpectTAsync<OkButtplugMessage>(new SensorSubscribeCommandButtplugMessage(Index, sensor.Index, sensor.SensorType), cancellationToken).ConfigureAwait(false);
 
-        var subscription = new ButtplugDeviceSensorSubscription(this, sensorIdentifier, readingCallback, UnsubscribeSensorAsync);
-        return !_sensorSubscriptions.TryAdd(sensorIdentifier, subscription)
+        var subscription = new ButtplugDeviceSensorSubscription(sensor, readingCallback, UnsubscribeSensorAsync);
+        return !_sensorSubscriptions.TryAdd(sensor, subscription)
             ? throw new ButtplugException("Cannot subscribe to the same sensor multiple times")
             : subscription;
     }
 
+    public async Task UnsubscribeSensorAsync(SensorType sensorType, CancellationToken cancellationToken)
+        => await UnsubscribeSensorAsync(GetSensors<ButtplugDeviceSubscribeSensor>(sensorType).First(), cancellationToken).ConfigureAwait(false);
     public async Task UnsubscribeSensorAsync(uint sensorIndex, SensorType sensorType, CancellationToken cancellationToken)
-        => await UnsubscribeSensorAsync(new SensorIdentifier(sensorIndex, sensorType), cancellationToken).ConfigureAwait(false);
-    public async Task UnsubscribeSensorAsync(SensorIdentifier sensorIdentifier, CancellationToken cancellationToken)
+        => await UnsubscribeSensorAsync(GetSensor<ButtplugDeviceSubscribeSensor>(sensorIndex, sensorType), cancellationToken).ConfigureAwait(false);
+    public async Task UnsubscribeSensorAsync(ButtplugDeviceSubscribeSensor sensor, CancellationToken cancellationToken)
     {
-        if (!_sensorSubscriptions.TryRemove(sensorIdentifier, out var _))
+        if (!_sensorSubscriptions.TryRemove(sensor, out var _))
             throw new ButtplugException("Cannot find sensor to unsubscribe");
 
-        await SendMessageExpectTAsync<OkButtplugMessage>(new SensorUnsubscribeCommandButtplugMessage(Index, sensorIdentifier.Index, sensorIdentifier.SensorType), cancellationToken).ConfigureAwait(false);
+        await SendMessageExpectTAsync<OkButtplugMessage>(new SensorUnsubscribeCommandButtplugMessage(Index, sensor.Index, sensor.SensorType), cancellationToken).ConfigureAwait(false);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -196,7 +162,8 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 
     internal void HandleSubscribeSensorReading(uint sensorIndex, SensorType sensorType, ImmutableArray<int> data)
     {
-        if (!_sensorSubscriptions.TryGetValue(new SensorIdentifier(sensorIndex, sensorType), out var subscription))
+        var sensor = GetSensor<ButtplugDeviceSubscribeSensor>(sensorIndex, sensorType);
+        if (!_sensorSubscriptions.TryGetValue(sensor, out var subscription))
             throw new ButtplugException("Could not find sensor subscription for sensor reading");
 
         subscription.HandleReadingData(data);

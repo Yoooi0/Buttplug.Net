@@ -2,33 +2,31 @@
 
 namespace Buttplug;
 
-public delegate void ButtplugDeviceSensorSubscriptionReadingCallback(ButtplugDevice device, SensorIdentifier sensorIdentifier, ImmutableArray<int> data);
-public delegate Task ButtplugDeviceSensorSubscriptionUnsubscribe(SensorIdentifier sensorIdentifier, CancellationToken cancellationToken);
+public delegate void ButtplugDeviceSensorSubscriptionReadingCallback(ButtplugDeviceSubscribeSensor sensor, ImmutableArray<int> data);
+public delegate Task ButtplugDeviceSensorSubscriptionUnsubscribe(ButtplugDeviceSubscribeSensor sensor, CancellationToken cancellationToken);
 
 public record class ButtplugDeviceSensorSubscription
 {
     private readonly ButtplugDeviceSensorSubscriptionReadingCallback _readingCallback;
     private readonly ButtplugDeviceSensorSubscriptionUnsubscribe _unsubscribe;
 
-    public ButtplugDevice Device { get; }
-    public SensorIdentifier SensorIdentifier { get; }
+    public ButtplugDeviceSubscribeSensor Sensor { get; }
 
-    public uint SensorIndex => SensorIdentifier.Index;
-    public SensorType SensorType => SensorIdentifier.SensorType;
+    public ButtplugDevice Device => Sensor.Device;
+    public uint SensorIndex => Sensor.Index;
+    public SensorType SensorType => Sensor.SensorType;
 
-    internal ButtplugDeviceSensorSubscription(ButtplugDevice device, SensorIdentifier sensorIdentifier,
+    internal ButtplugDeviceSensorSubscription(ButtplugDeviceSubscribeSensor sensor,
         ButtplugDeviceSensorSubscriptionReadingCallback readingCallback, ButtplugDeviceSensorSubscriptionUnsubscribe unsubscribe)
     {
         _readingCallback = readingCallback;
         _unsubscribe = unsubscribe;
 
-        Device = device;
-        SensorIdentifier = sensorIdentifier;
+        Sensor = sensor;
     }
 
     internal void HandleReadingData(ImmutableArray<int> data)
-        => _readingCallback(Device, SensorIdentifier, data);
-
+        => _readingCallback(Sensor, data);
     public async Task UnsubscribeAsync(CancellationToken cancellationToken)
-        => await _unsubscribe.Invoke(SensorIdentifier, cancellationToken).ConfigureAwait(false);
+        => await _unsubscribe.Invoke(Sensor, cancellationToken).ConfigureAwait(false);
 }

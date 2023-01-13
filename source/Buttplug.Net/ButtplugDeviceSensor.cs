@@ -10,8 +10,6 @@ public enum SensorType
     Pressure
 }
 
-public readonly record struct SensorIdentifier(uint Index, SensorType SensorType);
-
 public record class ButtplugDeviceSensor
 {
     public ButtplugDevice Device { get; }

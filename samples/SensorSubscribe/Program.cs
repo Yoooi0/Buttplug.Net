@@ -21,7 +21,7 @@ await client.StopScanningAsync(cancellationToken);
 var sensor = client.Devices.SelectMany(d => d.SubscribeSensors).FirstOrDefault();
 if (sensor != null)
 {
-    var subscription = await sensor.SubscribeAsync((_, i, d) => Console.WriteLine($"Sensor {i} data: \"{string.Join(", ", d)}\""), cancellationToken);
+    var subscription = await sensor.SubscribeAsync((s, d) => Console.WriteLine($"Sensor {s} data: \"{string.Join(", ", d)}\""), cancellationToken);
     await Task.Delay(10000);
     await subscription.UnsubscribeAsync(cancellationToken);
 }

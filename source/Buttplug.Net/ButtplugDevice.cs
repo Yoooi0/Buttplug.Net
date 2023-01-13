@@ -131,7 +131,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 
         await SendMessageExpectTAsync<OkButtplugMessage>(new SensorSubscribeCommandButtplugMessage(Index, sensor.Index, sensor.SensorType), cancellationToken).ConfigureAwait(false);
 
-        var subscription = new ButtplugDeviceSensorSubscription(sensor, readingCallback, UnsubscribeSensorAsync);
+        var subscription = new ButtplugDeviceSensorSubscription(sensor, readingCallback);
         return !_sensorSubscriptions.TryAdd(sensor, subscription)
             ? throw new ButtplugException("Cannot subscribe to the same sensor multiple times")
             : subscription;

@@ -19,6 +19,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public string Name { get; }
     public string DisplayName { get; }
     public uint MessageTimingGap { get; }
+    public bool SupportsStopCommand { get; }
 
     public IEnumerable<ActuatorType> SupportedActuatorTypes => Actuators.Select(a => a.ActuatorType).Distinct();
     public IEnumerable<SensorType> SupportedReadSensorTypes => ReadSensors.Select(c => c.SensorType).Distinct();
@@ -39,6 +40,11 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         _sender = sender;
         _sensorSubscriptions = new ConcurrentDictionary<ButtplugDeviceSubscribeSensor, ButtplugDeviceSensorSubscription>();
 
+        Index = info.DeviceIndex;
+        Name = info.DeviceName;
+        DisplayName = info.DeviceDisplayName;
+        MessageTimingGap = info.DeviceMessageTimingGap;
+
         var attributes = info.DeviceMessages;
 
         //use enumeration index as workaround until buttplug sends correct index in the message
@@ -49,10 +55,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         _readSensors = ImmutableArray.CreateRange(attributes.SensorReadCmd.Select((s, i) => new ButtplugDeviceReadSensor(this, (uint)i, s)));
         _subscribeSensors = ImmutableArray.CreateRange(attributes.SensorSubscribeCmd.Select((s, i) => new ButtplugDeviceSubscribeSensor(this, (uint)i, s)));
 
-        Index = info.DeviceIndex;
-        Name = info.DeviceName;
-        DisplayName = info.DeviceDisplayName;
-        MessageTimingGap = info.DeviceMessageTimingGap;
+        SupportsStopCommand = attributes.StopDeviceCmd != null;
     }
 
     public IEnumerable<ButtplugDeviceActuator> GetActuators(ActuatorType actuatorType)

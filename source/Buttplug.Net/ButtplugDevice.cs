@@ -76,14 +76,14 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         => GetSensors<TSensor>(sensorType).Single(a => a.Index == sensorIndex && a.SensorType == sensorType);
 
     public bool TryGetActuator(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out ButtplugDeviceActuator actuator)
-        => (actuator = GetActuator(actuatorIndex, actuatorType)) != null;
+        => (actuator = GetActuators(actuatorType).FirstOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType)) != null;
     public bool TryGetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
-        => (actuator = GetActuator<TActuator>(actuatorIndex, actuatorType)) != null;
+        => (actuator = GetActuators<TActuator>(actuatorType).FirstOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType)) != null;
 
     public bool TryGetSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceSensor sensor)
-        => (sensor = GetSensor(sensorIndex, sensorType)) != null;
+        => (sensor = GetSensors(sensorType).FirstOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType)) != null;
     public bool TryGetSensor<TSensor>(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out TSensor sensor) where TSensor : ButtplugDeviceSensor
-        => (sensor = GetSensor<TSensor>(sensorIndex, sensorType)) != null;
+        => (sensor = GetSensors<TSensor>(sensorType).FirstOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType)) != null;
 
     public async Task ScalarAsync(double scalar, ActuatorType actuatorType, CancellationToken cancellationToken)
         => await ScalarAsync(ScalarActuators.Select(a => new ScalarCommand(a.Index, scalar, actuatorType)), cancellationToken).ConfigureAwait(false);

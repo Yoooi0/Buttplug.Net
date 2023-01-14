@@ -21,10 +21,6 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public uint MessageTimingGap { get; }
     public bool SupportsStopCommand { get; }
 
-    public IEnumerable<ActuatorType> SupportedActuatorTypes => Actuators.Select(a => a.ActuatorType).Distinct();
-    public IEnumerable<SensorType> SupportedReadSensorTypes => ReadSensors.Select(c => c.SensorType).Distinct();
-    public IEnumerable<SensorType> SupportedSubscribeSensorTypes => SubscribeSensors.Select(c => c.SensorType).Distinct();
-
     public IEnumerable<ButtplugDeviceActuator> Actuators => LinearActuators.Concat<ButtplugDeviceActuator>(RotateActuators).Concat(ScalarActuators);
     public IReadOnlyList<ButtplugDeviceLinearActuator> LinearActuators => _linearActuators;
     public IReadOnlyList<ButtplugDeviceRotateActuator> RotateActuators => _rotateActuators;

@@ -87,7 +87,7 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public bool TryGetActuator<TActuator>(uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out TActuator actuator) where TActuator : ButtplugDeviceActuator
         => (actuator = GetActuators<TActuator>(actuatorType).FirstOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType)) != null;
     public bool TryGetActuator(Type type, uint actuatorIndex, ActuatorType actuatorType, [MaybeNullWhen(false)] out ButtplugDeviceActuator actuator)
-        => (actuator = GetActuators(type, actuatorType).FirstOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType) != null;
+        => (actuator = GetActuators(type, actuatorType).FirstOrDefault(a => a.Index == actuatorIndex && a.ActuatorType == actuatorType)) != null;
 
     public bool TryGetSensor(uint sensorIndex, SensorType sensorType, [MaybeNullWhen(false)] out ButtplugDeviceSensor sensor)
         => (sensor = GetSensors(sensorType).FirstOrDefault(s => s.Index == sensorIndex && s.SensorType == sensorType)) != null;

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Buttplug;
 
@@ -235,6 +237,28 @@ public class ButtplugClient : IAsyncDisposable
     private async Task<T> SendMessageExpectTAsync<T>(IButtplugMessage message, CancellationToken cancellationToken) where T : IButtplugMessage
         => _connector == null ? throw new ObjectDisposedException(nameof(_connector))
                               : await _connector.SendMessageExpectTAsync<T>(message, cancellationToken).ConfigureAwait(false);
+
+    public override string ToString()
+    {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.Append(nameof(ButtplugClient));
+        stringBuilder.Append(" { ");
+        if (PrintMembers(stringBuilder))
+            stringBuilder.Append(' ');
+
+        stringBuilder.Append('}');
+        return stringBuilder.ToString();
+    }
+
+    protected virtual bool PrintMembers(StringBuilder builder)
+    {
+        RuntimeHelpers.EnsureSufficientExecutionStack();
+        builder.Append($"{nameof(Name)} = ");
+        builder.Append(Name);
+        builder.Append($", {nameof(Devices)} = ");
+        builder.Append(_devices.Count);
+        return true;
+    }
 
     protected virtual async ValueTask DisposeAsync(bool disposing) => await DisconnectAsync().ConfigureAwait(false);
 

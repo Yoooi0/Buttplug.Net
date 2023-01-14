@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Buttplug;
 
@@ -178,6 +180,36 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
             throw new ButtplugException("Could not find sensor subscription for sensor reading");
 
         subscription.HandleReadingData(data);
+    }
+
+    public override string ToString()
+    {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.Append(nameof(ButtplugDevice));
+        stringBuilder.Append(" { ");
+        if (PrintMembers(stringBuilder))
+            stringBuilder.Append(' ');
+
+        stringBuilder.Append('}');
+        return stringBuilder.ToString();
+    }
+
+    protected virtual bool PrintMembers(StringBuilder builder)
+    {
+        RuntimeHelpers.EnsureSufficientExecutionStack();
+        builder.Append($"{nameof(Index)} = ");
+        builder.Append(Index);
+        builder.Append($", {nameof(Name)} = ");
+        builder.Append(Name);
+        builder.Append($", {nameof(DisplayName)} = ");
+        builder.Append(DisplayName);
+        builder.Append($", {nameof(MessageTimingGap)} = ");
+        builder.Append(MessageTimingGap);
+        builder.Append($", {nameof(Actuators)} = ");
+        builder.Append(_linearActuators.Length + _rotateActuators.Length + _scalarActuators.Length);
+        builder.Append($", {nameof(Sensors)} = ");
+        builder.Append(_readSensors.Length + _subscribeSensors.Length);
+        return true;
     }
 
     protected virtual void Dispose(bool disposing)

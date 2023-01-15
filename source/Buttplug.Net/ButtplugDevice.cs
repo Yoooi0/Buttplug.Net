@@ -6,14 +6,32 @@ using System.Text;
 
 namespace Buttplug;
 
-public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
+public interface IUnsafeButtplugDevice
+{
+    IReadOnlyList<string> ReadEndpoints { get; }
+    IReadOnlyList<string> WriteEndpoints { get; }
+    IReadOnlyList<string> SubscribeEndpoints { get; }
+    IReadOnlyList<ButtplugDeviceEndpointSubscription> EndpointSubscriptions { get; }
+
+    Task EndpointWriteAsync(string endpoint, IEnumerable<byte> data, bool writeWithResponse, CancellationToken cancellationToken);
+    Task<ImmutableArray<byte>> EndpointReadAsync(string endpoint, uint expectedLength, bool waitForData, CancellationToken cancellationToken);
+    Task<ButtplugDeviceEndpointSubscription> EndpointSubscribeAsync(string endpoint, ButtplugDeviceEndpointSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken);
+    Task EndpointUnsubscribeAsync(string endpoint, CancellationToken cancellationToken);
+}
+
+public class ButtplugDevice : IUnsafeButtplugDevice, IEquatable<ButtplugDevice>, IDisposable
 {
     private readonly ImmutableArray<ButtplugDeviceLinearActuator> _linearActuators;
     private readonly ImmutableArray<ButtplugDeviceRotateActuator> _rotateActuators;
     private readonly ImmutableArray<ButtplugDeviceScalarActuator> _scalarActuators;
     private readonly ImmutableArray<ButtplugDeviceReadSensor> _readSensors;
     private readonly ImmutableArray<ButtplugDeviceSubscribeSensor> _subscribeSensors;
+    private readonly ImmutableArray<string> _readEndpoints;
+    private readonly ImmutableArray<string> _writeEndpoints;
+    private readonly ImmutableArray<string> _subscribeEndpoints;
+
     private readonly ConcurrentDictionary<ButtplugDeviceSubscribeSensor, ButtplugDeviceSensorSubscription> _sensorSubscriptions;
+    private readonly ConcurrentDictionary<string, ButtplugDeviceEndpointSubscription> _endpointSubscriptions;
 
     private IButtplugSender? _sender;
 
@@ -33,10 +51,16 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public IReadOnlyList<ButtplugDeviceSubscribeSensor> SubscribeSensors => _subscribeSensors;
     public IReadOnlyList<ButtplugDeviceSensorSubscription> SensorSubscriptions => (IReadOnlyList<ButtplugDeviceSensorSubscription>)_sensorSubscriptions.Values;
 
+    IReadOnlyList<string> IUnsafeButtplugDevice.ReadEndpoints => _readEndpoints;
+    IReadOnlyList<string> IUnsafeButtplugDevice.WriteEndpoints => _writeEndpoints;
+    IReadOnlyList<string> IUnsafeButtplugDevice.SubscribeEndpoints => _subscribeEndpoints;
+    IReadOnlyList<ButtplugDeviceEndpointSubscription> IUnsafeButtplugDevice.EndpointSubscriptions => (IReadOnlyList<ButtplugDeviceEndpointSubscription>)_endpointSubscriptions.Values;
+
     internal ButtplugDevice(IButtplugSender sender, ButtplugDeviceInfo info)
     {
         _sender = sender;
         _sensorSubscriptions = new ConcurrentDictionary<ButtplugDeviceSubscribeSensor, ButtplugDeviceSensorSubscription>();
+        _endpointSubscriptions = new ConcurrentDictionary<string, ButtplugDeviceEndpointSubscription>();
 
         Index = info.DeviceIndex;
         Name = info.DeviceName;
@@ -52,6 +76,10 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
 
         _readSensors = ImmutableArray.CreateRange(attributes.SensorReadCmd.Select((s, i) => new ButtplugDeviceReadSensor(this, (uint)i, s)));
         _subscribeSensors = ImmutableArray.CreateRange(attributes.SensorSubscribeCmd.Select((s, i) => new ButtplugDeviceSubscribeSensor(this, (uint)i, s)));
+
+        _readEndpoints = ImmutableArray.CreateRange(attributes.RawReadCmd.SelectMany(r => r.Endpoints));
+        _writeEndpoints = ImmutableArray.CreateRange(attributes.RawWriteCmd.SelectMany(r => r.Endpoints));
+        _subscribeEndpoints = ImmutableArray.CreateRange(attributes.RawSubscribeCmd.SelectMany(r => r.Endpoints));
 
         SupportsStopCommand = attributes.StopDeviceCmd != null;
     }
@@ -165,6 +193,31 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
     public async Task StopAsync(CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new StopDeviceCommandButtplugMessage(Index), cancellationToken).ConfigureAwait(false);
 
+    public IUnsafeButtplugDevice AsUnsafe() => this;
+    async Task IUnsafeButtplugDevice.EndpointWriteAsync(string endpoint, IEnumerable<byte> data, bool writeWithResponse, CancellationToken cancellationToken)
+        => await SendMessageExpectTAsync<OkButtplugMessage>(new EndpointWriteCommandButtplugMessage(Index, endpoint, data, writeWithResponse), cancellationToken).ConfigureAwait(false);
+    async Task<ImmutableArray<byte>> IUnsafeButtplugDevice.EndpointReadAsync(string endpoint, uint expectedLength, bool waitForData, CancellationToken cancellationToken)
+    {
+        var response = await SendMessageExpectTAsync<EndpointReadingButtplugMessage>(new EndpointReadCommandButtplugMessage(Index, endpoint, expectedLength, waitForData), cancellationToken).ConfigureAwait(false);
+        return response.Data;
+    }
+
+    async Task<ButtplugDeviceEndpointSubscription> IUnsafeButtplugDevice.EndpointSubscribeAsync(string endpoint, ButtplugDeviceEndpointSubscriptionReadingCallback readingCallback, CancellationToken cancellationToken)
+    {
+        if (_endpointSubscriptions.ContainsKey(endpoint))
+            throw new ButtplugException("Cannot subscribe to the same endpoint multiple times");
+
+        await SendMessageExpectTAsync<OkButtplugMessage>(new EndpointSubscribeCommandButtplugMessage(Index, endpoint), cancellationToken).ConfigureAwait(false);
+
+        var subscription = new ButtplugDeviceEndpointSubscription(this, endpoint, readingCallback);
+        return !_endpointSubscriptions.TryAdd(endpoint, subscription)
+            ? throw new ButtplugException("Cannot subscribe to the same endpoint multiple times")
+            : subscription;
+    }
+
+    async Task IUnsafeButtplugDevice.EndpointUnsubscribeAsync(string endpoint, CancellationToken cancellationToken)
+        => await SendMessageExpectTAsync<OkButtplugMessage>(new EndpointUnsubscribeCommandButtplugMessage(Index, endpoint), cancellationToken).ConfigureAwait(false);
+
     private async Task<T> SendMessageExpectTAsync<T>(IButtplugMessage message, CancellationToken cancellationToken) where T : IButtplugMessage
         => _sender == null ? throw new ObjectDisposedException(nameof(_sender))
                            : await _sender.SendMessageExpectTAsync<T>(message, cancellationToken).ConfigureAwait(false);
@@ -178,6 +231,14 @@ public class ButtplugDevice : IEquatable<ButtplugDevice>, IDisposable
         var sensor = GetSensor<ButtplugDeviceSubscribeSensor>(sensorIndex, sensorType);
         if (!_sensorSubscriptions.TryGetValue(sensor, out var subscription))
             throw new ButtplugException("Could not find sensor subscription for sensor reading");
+
+        subscription.HandleReadingData(data);
+    }
+
+    internal void HandleSubscribeEndpointReading(string endpoint, ImmutableArray<byte> data)
+    {
+        if (!_endpointSubscriptions.TryGetValue(endpoint, out var subscription))
+            throw new ButtplugException("Could not find endpoint subscription for endpoint reading");
 
         subscription.HandleReadingData(data);
     }

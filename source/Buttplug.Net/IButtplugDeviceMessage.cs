@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 
 namespace Buttplug;
 
@@ -42,3 +42,18 @@ internal record class SensorUnsubscribeCommandButtplugMessage(uint DeviceIndex, 
 
 [ButtplugMessageName("SensorReading")]
 internal record class SensorReadingButtplugMessage(uint Id, uint DeviceIndex, uint SensorIndex, SensorType SensorType, ImmutableArray<int> Data) : IButtplugDeviceMessage;
+
+[ButtplugMessageName("RawWriteCmd")]
+internal record class EndpointWriteCommandButtplugMessage(uint DeviceIndex, string Endpoint, IEnumerable<byte> Data, bool WriteWithResponse) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("RawReadCmd")]
+internal record class EndpointReadCommandButtplugMessage(uint DeviceIndex, string Endpoint, uint ExpectedLength, bool WaitForData) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("RawReading")]
+internal record class EndpointReadingButtplugMessage(uint Id, uint DeviceIndex, string Endpoint, ImmutableArray<byte> Data) : IButtplugDeviceMessage;
+
+[ButtplugMessageName("RawSubscribeCmd")]
+internal record class EndpointSubscribeCommandButtplugMessage(uint DeviceIndex, string Endpoint) : AutoIncrementingButtplugMessage;
+
+[ButtplugMessageName("RawUnsubscribeCmd")]
+internal record class EndpointUnsubscribeCommandButtplugMessage(uint DeviceIndex, string Endpoint) : AutoIncrementingButtplugMessage;

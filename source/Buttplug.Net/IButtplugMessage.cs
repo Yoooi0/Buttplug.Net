@@ -58,27 +58,3 @@ internal record class PingButtplugMessage() : AutoIncrementingButtplugMessage;
 
 [ButtplugMessageName("StopAllDevices")]
 internal record class StopAllDevicesButtplugMessage() : AutoIncrementingButtplugMessage;
-
-[ButtplugMessageName("DeviceRemoved")]
-internal record class DeviceRemovedButtplugMessage(uint DeviceIndex) : IButtplugDeviceMessage { public uint Id => 0; }
-
-[ButtplugMessageName("ScalarCmd")]
-internal record class ScalarCommandButtplugMessage(uint DeviceIndex, IEnumerable<ScalarCommand> Scalars) : AutoIncrementingButtplugMessage;
-
-[ButtplugMessageName("RotateCmd")]
-internal record class RotateCommandButtplugMessage(uint DeviceIndex, IEnumerable<RotateCommand> Rotations) : AutoIncrementingButtplugMessage;
-
-[ButtplugMessageName("LinearCmd")]
-internal record class LinearCommandButtplugMessage(uint DeviceIndex, IEnumerable<LinearCommand> Vectors) : AutoIncrementingButtplugMessage;
-
-[ButtplugMessageName("StopDeviceCmd")]
-internal record class StopDeviceCommandButtplugMessage(uint DeviceIndex) : AutoIncrementingButtplugMessage;
-
-[ButtplugMessageName("SensorReadCmd")]
-internal record class SensorReadCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;
-
-[ButtplugMessageName("SensorSubscribeCmd")]
-internal record class SensorSubscribeCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;
-
-[ButtplugMessageName("SensorUnsubscribeCmd")]
-internal record class SensorUnsubscribeCommandButtplugMessage(uint DeviceIndex, uint SensorIndex, SensorType SensorType) : AutoIncrementingButtplugMessage;

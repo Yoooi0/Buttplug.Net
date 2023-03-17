@@ -1,4 +1,4 @@
-﻿namespace Buttplug;
+namespace Buttplug;
 
 public enum ActuatorType
 {
@@ -13,7 +13,7 @@ public enum ActuatorType
 
 public readonly record struct ScalarCommand(uint Index, double Scalar, ActuatorType ActuatorType);
 public readonly record struct RotateCommand(uint Index, double Speed, bool Clockwise);
-public readonly record struct LinearCommand(uint Index, double Duration, double Position);
+public readonly record struct LinearCommand(uint Index, uint Duration, double Position);
 
 public record class ButtplugDeviceActuator
 {

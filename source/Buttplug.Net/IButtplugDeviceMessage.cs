@@ -47,7 +47,7 @@ internal record class SensorReadingButtplugMessage(uint Id, uint DeviceIndex, ui
 internal record class EndpointWriteCommandButtplugMessage(uint DeviceIndex, string Endpoint, IEnumerable<byte> Data, bool WriteWithResponse) : AutoIncrementingButtplugMessage;
 
 [ButtplugMessageName("RawReadCmd")]
-internal record class EndpointReadCommandButtplugMessage(uint DeviceIndex, string Endpoint, uint ExpectedLength, bool WaitForData) : AutoIncrementingButtplugMessage;
+internal record class EndpointReadCommandButtplugMessage(uint DeviceIndex, string Endpoint, uint Length, bool WaitForData) : AutoIncrementingButtplugMessage;
 
 [ButtplugMessageName("RawReading")]
 internal record class EndpointReadingButtplugMessage(uint Id, uint DeviceIndex, string Endpoint, ImmutableArray<byte> Data) : IButtplugDeviceMessage;

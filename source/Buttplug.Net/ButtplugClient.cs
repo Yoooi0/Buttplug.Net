@@ -170,7 +170,7 @@ public class ButtplugClient : IAsyncDisposable
             }
             else if (message is ErrorButtplugMessage error)
             {
-                if (error.ErrorCode == ErrorButtplugMessageCode.ERROR_PING)
+                if (error.ErrorCode == ErrorButtplugMessageCode.Ping)
                     throw new TimeoutException("Ping timeout", new ButtplugException(error));
                 throw new ButtplugException(error);
             }

@@ -17,16 +17,13 @@ internal abstract record class AutoIncrementingButtplugMessage : IButtplugMessag
 [ButtplugMessageName("Ok")]
 internal record class OkButtplugMessage(uint Id) : IButtplugMessage;
 
-[ButtplugMessageName("Test")]
-internal record class TestButtplugMessage(string TestString) : AutoIncrementingButtplugMessage;
-
 internal enum ErrorButtplugMessageCode
 {
-    ERROR_UNKNOWN,
-    ERROR_INIT,
-    ERROR_PING,
-    ERROR_MSG,
-    ERROR_DEVICE,
+    Unknown,
+    Init,
+    Ping,
+    Message,
+    Device,
 }
 
 [ButtplugMessageName("Error")]

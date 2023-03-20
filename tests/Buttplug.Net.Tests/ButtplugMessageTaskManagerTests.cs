@@ -64,7 +64,7 @@ public class ButtplugMessageTaskManagerTests
     {
         var manager = new ButtplugMessageTaskManager();
         var sentMessage = new PingButtplugMessage();
-        var receivedMessage = new ErrorButtplugMessage(sentMessage.Id, "", ErrorButtplugMessageCode.ERROR_MSG);
+        var receivedMessage = new ErrorButtplugMessage(sentMessage.Id, "", ErrorButtplugMessageCode.Message);
         var token = CancellationToken.None;
 
         var task = manager.CreateTask(sentMessage, token);

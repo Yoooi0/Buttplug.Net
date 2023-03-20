@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Description>System.Text.Json based converter for Buttplug.Net</Description>
@@ -12,4 +12,7 @@
 		<ProjectReference Include="..\Buttplug.Net\Buttplug.Net.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+	</ItemGroup>
 </Project>

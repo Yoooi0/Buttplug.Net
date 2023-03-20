@@ -4,16 +4,8 @@ namespace Buttplug;
 
 internal record class ButtplugDeviceInfo(string DeviceName, uint DeviceIndex, string DeviceDisplayName, uint DeviceMessageTimingGap, ButtplugDeviceAttributes DeviceMessages);
 
-internal record class ButtplugDeviceActuatorAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount)
-{
-    public uint Index { get; internal set; }
-}
-
-internal record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, SensorType SensorType, ImmutableArray<ImmutableArray<uint>> SensorRange)
-{
-    public uint Index { get; internal set; }
-}
-
+internal record class ButtplugDeviceActuatorAttribute(string FeatureDescriptor, ActuatorType ActuatorType, uint StepCount);
+internal record class ButtplugDeviceSensorAttribute(string FeatureDescriptor, SensorType SensorType, ImmutableArray<ImmutableArray<uint>> SensorRange);
 internal record class ButtplugDeviceRawAttribute(ImmutableArray<string> Endpoints);
 internal record class ButtplugDeviceVoidAttribute();
 

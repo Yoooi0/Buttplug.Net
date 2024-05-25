@@ -18,7 +18,6 @@ public class ButtplugClient : IAsyncDisposable
     private int _isDisconnectingFlag;
 
     public string Name { get; }
-    public bool IsScanning { get; private set; }
     public bool IsConnected { get; private set; }
 
     public ICollection<ButtplugDevice> Devices => _devices.Values;
@@ -26,7 +25,6 @@ public class ButtplugClient : IAsyncDisposable
     public event EventHandler<ButtplugDevice>? DeviceAdded;
     public event EventHandler<ButtplugDevice>? DeviceRemoved;
     public event EventHandler<Exception>? UnhandledException;
-    public event EventHandler? ScanningFinished;
     public event EventHandler? Disconnected;
 
     public ButtplugClient(string name, IButtplugMessageJsonConverter converter)
@@ -149,11 +147,6 @@ public class ButtplugClient : IAsyncDisposable
                     UnhandledException?.Invoke(this, new ButtplugException($"Unable to find matching device for event \"{deviceRemoved}\""));
                 }
             }
-            else if (message is ScanningFinishedButtplugMessage)
-            {
-                IsScanning = false;
-                ScanningFinished?.Invoke(this, EventArgs.Empty);
-            }
             else if (message is SensorReadingButtplugMessage sensorReading)
             {
                 if (!_devices.TryGetValue(sensorReading.DeviceIndex, out var device))
@@ -227,13 +220,7 @@ public class ButtplugClient : IAsyncDisposable
     }
 
     public async Task StartScanningAsync(CancellationToken cancellationToken)
-    {
-        if (IsScanning)
-            return;
-
-        await SendMessageExpectTAsync<OkButtplugMessage>(new StartScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);
-        IsScanning = true;
-    }
+        => await SendMessageExpectTAsync<OkButtplugMessage>(new StartScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);
 
     public async Task StopScanningAsync(CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new StopScanningButtplugMessage(), cancellationToken).ConfigureAwait(false);

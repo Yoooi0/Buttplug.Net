@@ -21,7 +21,7 @@ public class ButtplugSystemTextJsonConverter : ButtplugMessageJsonConverter
             _serializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
-    public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });
+    public override string Serialize(IButtplugMessage message) => Serialize([message]);
     public override string Serialize(IEnumerable<IButtplugMessage> messages)
     {
         var array = new JsonArray(_nodeOptions);

@@ -23,13 +23,14 @@ internal static class Extensions
 
     public static async Task<string> ReceiveStringAsync(this ClientWebSocket client, Encoding encoding, CancellationToken cancellationToken)
     {
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
         using var memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
 
+        var readMemory = memoryOwner.Memory;
         var result = default(ValueWebSocketReceiveResult);
         do
         {
-            result = await client.ReceiveAsync(memoryOwner.Memory, cancellationToken).ConfigureAwait(false);
+            result = await client.ReceiveAsync(readMemory, cancellationToken).ConfigureAwait(false);
             await stream.WriteAsync(memoryOwner.Memory[..result.Count], cancellationToken).ConfigureAwait(false);
         } while (!cancellationToken.IsCancellationRequested && !result.EndOfMessage);
 

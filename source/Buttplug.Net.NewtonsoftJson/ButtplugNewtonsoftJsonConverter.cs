@@ -23,7 +23,7 @@ public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
         _serializer = JsonSerializer.CreateDefault(settings);
     }
 
-    public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });
+    public override string Serialize(IButtplugMessage message) => Serialize([message]);
     public override string Serialize(IEnumerable<IButtplugMessage> messages)
     {
         var token = CreateJToken(messages);
@@ -38,7 +38,7 @@ public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
         return stringWriter.ToString();
     }
 
-    internal JToken CreateJToken(IButtplugMessage message) => CreateJToken(new[] { message });
+    internal JToken CreateJToken(IButtplugMessage message) => CreateJToken([message]);
     internal JToken CreateJToken(IEnumerable<IButtplugMessage> messages)
     {
         return new JArray(messages.Select(ToJObject).ToArray());

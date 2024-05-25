@@ -4,17 +4,9 @@ using System.Text;
 
 namespace Buttplug;
 
-internal class ButtplugWebsocketConnector : IButtplugConnector
+internal class ButtplugWebsocketConnector(IButtplugMessageJsonConverter converter, IButtplugMessageTaskFactory taskFactory) : IButtplugConnector
 {
-    private readonly IButtplugMessageJsonConverter _converter;
-    private readonly IButtplugMessageTaskFactory _taskFactory;
     private ClientWebSocket? _client;
-
-    public ButtplugWebsocketConnector(IButtplugMessageJsonConverter converter, IButtplugMessageTaskFactory taskFactory)
-    {
-        _converter = converter;
-        _taskFactory = taskFactory;
-    }
 
     public async Task ConnectAsync(Uri uri, CancellationToken cancellationToken)
     {
@@ -41,7 +33,7 @@ internal class ButtplugWebsocketConnector : IButtplugConnector
                 if (string.IsNullOrWhiteSpace(messageJson))
                     continue;
 
-                foreach (var message in _converter.Deserialize(messageJson))
+                foreach (var message in converter.Deserialize(messageJson))
                     yield return message;
             }
         }
@@ -52,8 +44,8 @@ internal class ButtplugWebsocketConnector : IButtplugConnector
         if (_client == null)
             throw new ButtplugException("Cannot send messages while disconnected");
 
-        var task = _taskFactory.CreateTask(message, cancellationToken);
-        var messageJson = _converter.Serialize(message);
+        var task = taskFactory.CreateTask(message, cancellationToken);
+        var messageJson = converter.Serialize(message);
 
         await _client.SendAsync(Encoding.UTF8.GetBytes(messageJson), WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);
         return await task.ConfigureAwait(false);

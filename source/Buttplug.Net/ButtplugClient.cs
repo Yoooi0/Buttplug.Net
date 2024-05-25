@@ -4,20 +4,19 @@ using System.Text;
 
 namespace Buttplug;
 
-public class ButtplugClient : IAsyncDisposable
+public class ButtplugClient(string name, IButtplugMessageJsonConverter converter) : IAsyncDisposable
 {
     internal const uint MessageVersion = 3;
 
-    private readonly IButtplugMessageJsonConverter _converter;
-    private readonly ButtplugMessageTaskManager _taskManager;
-    private readonly ConcurrentDictionary<uint, ButtplugDevice> _devices;
+    private readonly ButtplugMessageTaskManager _taskManager = new();
+    private readonly ConcurrentDictionary<uint, ButtplugDevice> _devices = new();
 
-    private IButtplugConnector? _connector;
+    private ButtplugWebsocketConnector? _connector;
     private CancellationTokenSource? _cancellationSource;
     private Task? _task;
     private int _isDisconnectingFlag;
 
-    public string Name { get; }
+    public string Name { get; } = name;
     public bool IsConnected { get; private set; }
 
     public ICollection<ButtplugDevice> Devices => _devices.Values;
@@ -27,14 +26,6 @@ public class ButtplugClient : IAsyncDisposable
     public event EventHandler<Exception>? UnhandledException;
     public event EventHandler? Disconnected;
 
-    public ButtplugClient(string name, IButtplugMessageJsonConverter converter)
-    {
-        Name = name;
-        _converter = converter;
-        _devices = new ConcurrentDictionary<uint, ButtplugDevice>();
-        _taskManager = new ButtplugMessageTaskManager();
-    }
-
     public async Task ConnectAsync(Uri uri, CancellationToken cancellationToken)
     {
         if (_cancellationSource != null)
@@ -42,7 +33,7 @@ public class ButtplugClient : IAsyncDisposable
 
         try
         {
-            _connector = new ButtplugWebsocketConnector(_converter, _taskManager);
+            _connector = new ButtplugWebsocketConnector(converter, _taskManager);
             await _connector.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
 
             using var connectionSemaphore = new SemaphoreSlim(0, 1);

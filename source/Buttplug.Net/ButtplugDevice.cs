@@ -131,7 +131,7 @@ public class ButtplugDevice : IUnsafeButtplugDevice, IEquatable<ButtplugDevice>,
     public async Task ScalarAsync(double scalar, uint actuatorIndex, ActuatorType actuatorType, CancellationToken cancellationToken)
         => await ScalarAsync(new ScalarCommand(actuatorIndex, scalar, actuatorType), cancellationToken).ConfigureAwait(false);
     public async Task ScalarAsync(ScalarCommand scalarCommand, CancellationToken cancellationToken)
-        => await ScalarAsync(new[] { scalarCommand }, cancellationToken).ConfigureAwait(false);
+        => await ScalarAsync([scalarCommand], cancellationToken).ConfigureAwait(false);
     public async Task ScalarAsync(IEnumerable<ScalarCommand> scalarCommands, CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new ScalarCommandButtplugMessage(Index, scalarCommands), cancellationToken).ConfigureAwait(false);
 
@@ -140,7 +140,7 @@ public class ButtplugDevice : IUnsafeButtplugDevice, IEquatable<ButtplugDevice>,
     public async Task RotateAsync(double speed, bool clockwise, uint actuatorIndex, CancellationToken cancellationToken)
         => await RotateAsync(new RotateCommand(actuatorIndex, speed, clockwise), cancellationToken).ConfigureAwait(false);
     public async Task RotateAsync(RotateCommand rotateCommand, CancellationToken cancellationToken)
-        => await RotateAsync(new[] { rotateCommand }, cancellationToken).ConfigureAwait(false);
+        => await RotateAsync([rotateCommand], cancellationToken).ConfigureAwait(false);
     public async Task RotateAsync(IEnumerable<RotateCommand> rotateCommands, CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new RotateCommandButtplugMessage(Index, rotateCommands), cancellationToken).ConfigureAwait(false);
 
@@ -149,7 +149,7 @@ public class ButtplugDevice : IUnsafeButtplugDevice, IEquatable<ButtplugDevice>,
     public async Task LinearAsync(uint duration, double position, uint actuatorIndex, CancellationToken cancellationToken)
         => await LinearAsync(new LinearCommand(actuatorIndex, duration, position), cancellationToken).ConfigureAwait(false);
     public async Task LinearAsync(LinearCommand linearCommand, CancellationToken cancellationToken)
-        => await LinearAsync(new[] { linearCommand }, cancellationToken).ConfigureAwait(false);
+        => await LinearAsync([linearCommand], cancellationToken).ConfigureAwait(false);
     public async Task LinearAsync(IEnumerable<LinearCommand> linearCommands, CancellationToken cancellationToken)
         => await SendMessageExpectTAsync<OkButtplugMessage>(new LinearCommandButtplugMessage(Index, linearCommands), cancellationToken).ConfigureAwait(false);
 

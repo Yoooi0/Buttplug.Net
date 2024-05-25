@@ -1,8 +1,7 @@
 ﻿namespace Buttplug;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class ButtplugMessageNameAttribute : Attribute
+public class ButtplugMessageNameAttribute(string name) : Attribute
 {
-    public string Name { get; }
-    public ButtplugMessageNameAttribute(string name) => Name = name;
+    public string Name { get; } = name;
 }

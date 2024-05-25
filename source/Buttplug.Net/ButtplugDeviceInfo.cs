@@ -11,13 +11,13 @@ internal record class ButtplugDeviceVoidAttribute();
 
 internal record class ButtplugDeviceAttributes
 {
-    public ImmutableArray<ButtplugDeviceActuatorAttribute> ScalarCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
-    public ImmutableArray<ButtplugDeviceActuatorAttribute> RotateCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
-    public ImmutableArray<ButtplugDeviceActuatorAttribute> LinearCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceActuatorAttribute>();
-    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorReadCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceSensorAttribute>();
-    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorSubscribeCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceSensorAttribute>();
-    public ImmutableArray<ButtplugDeviceRawAttribute> RawReadCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
-    public ImmutableArray<ButtplugDeviceRawAttribute> RawWriteCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
-    public ImmutableArray<ButtplugDeviceRawAttribute> RawSubscribeCmd { get; init; } = ImmutableArray.Create<ButtplugDeviceRawAttribute>();
+    public ImmutableArray<ButtplugDeviceActuatorAttribute> ScalarCmd { get; init; } = [];
+    public ImmutableArray<ButtplugDeviceActuatorAttribute> RotateCmd { get; init; } = [];
+    public ImmutableArray<ButtplugDeviceActuatorAttribute> LinearCmd { get; init; } = [];
+    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorReadCmd { get; init; } = [];
+    public ImmutableArray<ButtplugDeviceSensorAttribute> SensorSubscribeCmd { get; init; } = [];
+    public ImmutableArray<ButtplugDeviceRawAttribute> RawReadCmd { get; init; } = [];
+    public ImmutableArray<ButtplugDeviceRawAttribute> RawWriteCmd { get; init; } = [];
+    public ImmutableArray<ButtplugDeviceRawAttribute> RawSubscribeCmd { get; init; } = [];
     public ButtplugDeviceVoidAttribute? StopDeviceCmd { get; init; }
 }

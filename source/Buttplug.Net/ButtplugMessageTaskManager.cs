@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Buttplug;
 
@@ -9,7 +10,7 @@ internal interface IButtplugMessageTaskFactory
 
 internal class ButtplugMessageTaskManager : IButtplugMessageTaskFactory
 {
-    private readonly ConcurrentDictionary<uint, (CancellableTaskCompletionSource<IButtplugMessage> CompletionSource, CancellationTokenRegistration Registration)> _pendingTasks;
+    private readonly ConcurrentDictionary<uint, MessageTaskRegistration> _pendingTasks;
 
     public ButtplugMessageTaskManager() => _pendingTasks = new();
 
@@ -17,46 +18,53 @@ internal class ButtplugMessageTaskManager : IButtplugMessageTaskFactory
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var completionSource = new CancellableTaskCompletionSource<IButtplugMessage>(cancellationToken);
-        var registration = cancellationToken.Register(() => TryCleanupTask(message.Id, out var _));
+        var messageTaskCompletionSource = new CancellableTaskCompletionSource<IButtplugMessage>(cancellationToken);
+        var cancellationTokenRegistration = cancellationToken.Register(() => TryCleanupTask(message.Id, out var _));
 
-        return !_pendingTasks.TryAdd(message.Id, (completionSource, registration))
+        return !_pendingTasks.TryAdd(message.Id, new(messageTaskCompletionSource, cancellationTokenRegistration))
             ? throw new ButtplugException("Found pending task with duplicate id: \"{message.Id}\"")
-            : completionSource.Task;
+            : messageTaskCompletionSource.Task;
     }
 
-    private bool TryCleanupTask(uint messageId, out CancellableTaskCompletionSource<IButtplugMessage>? completionSource)
+    private bool TryCleanupTask(uint messageId, [NotNullWhen(true)] out CancellableTaskCompletionSource<IButtplugMessage>? messageTaskCompletionSource)
     {
-        completionSource = null;
-        if (!_pendingTasks.TryRemove(messageId, out var item))
+        messageTaskCompletionSource = null;
+        if (!_pendingTasks.TryRemove(messageId, out var messageTaskRegistration))
             return false;
 
-        (completionSource, var registration) = item;
-        registration.Dispose();
+        (messageTaskCompletionSource, var messageTaskCancellationTokenRegistration) = messageTaskRegistration;
+        messageTaskCancellationTokenRegistration.Dispose();
         return true;
     }
 
     public void FinishTask(IButtplugMessage message)
     {
-        if (!TryCleanupTask(message.Id, out var completionSource))
+        if (!TryCleanupTask(message.Id, out var messageTaskCompletionSource))
             throw new ButtplugException($"Could not find pending task with id: \"{message.Id}\"");
 
         if (message is ErrorButtplugMessage error)
-            completionSource!.SetException(new ButtplugException(error));
+            messageTaskCompletionSource.SetException(new ButtplugException(error));
         else
-            completionSource!.SetResult(message);
+            messageTaskCompletionSource.SetResult(message);
     }
 
     public void CancelPendingTasks()
     {
         foreach (var (messageId, _) in _pendingTasks)
         {
-            if (!_pendingTasks.TryRemove(messageId, out var item))
+            if (!_pendingTasks.TryRemove(messageId, out var messageTaskRegistration))
                 continue;
 
-            var (completionSource, registration) = item;
-            completionSource.Dispose();
-            registration.Dispose();
+            messageTaskRegistration.Dispose();
+        }
+    }
+
+    private readonly record struct MessageTaskRegistration(CancellableTaskCompletionSource<IButtplugMessage> MessageTaskCompletionSource, CancellationTokenRegistration CancellationTokenRegistration) : IDisposable
+    {
+        public void Dispose()
+        {
+            MessageTaskCompletionSource.Dispose();
+            CancellationTokenRegistration.Dispose();
         }
     }
 }

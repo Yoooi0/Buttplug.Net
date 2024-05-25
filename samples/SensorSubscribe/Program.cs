@@ -7,7 +7,6 @@ await using var client = new ButtplugClient("Buttplug.Net", converter);
 
 client.DeviceAdded += (_, e) => Console.WriteLine($"Device added: {e}");
 client.DeviceRemoved += (_, e) => Console.WriteLine($"Device removed: {e}");
-client.ScanningFinished += (_, e) => Console.WriteLine("Scanning finished");
 client.UnhandledException += (_, e) => Console.WriteLine($"Error received: {e}");
 client.Disconnected += (_, e) => Console.WriteLine("Disconnected");
 

@@ -47,13 +47,8 @@ public class ButtplugClient : IAsyncDisposable
 
             using var connectionSemaphore = new SemaphoreSlim(0, 1);
             _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _task = Task.Factory.StartNew(() => RunAsync(connectionSemaphore, _cancellationSource.Token),
-                _cancellationSource.Token,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default)
-                    .Unwrap();
-
-            _ = _task.ContinueWith(_ => DisconnectAsync()).Unwrap();
+            _task = Task.Run(() => RunAsync(connectionSemaphore, _cancellationSource.Token), _cancellationSource.Token);
+            _ = _task.ContinueWith(_ => DisconnectAsync());
 
             await connectionSemaphore.WaitAsync(_cancellationSource.Token).ConfigureAwait(false);
         }

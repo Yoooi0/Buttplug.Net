@@ -1,30 +1,50 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
+using System.Text;
 
 namespace Buttplug.NewtonsoftJson;
 
 public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
 {
-    private readonly JsonSerializerSettings? _settings;
+    private readonly JsonSerializer _serializer;
 
     public ButtplugNewtonsoftJsonConverter(JsonSerializerSettings? settings = null)
     {
-        _settings = settings ?? new JsonSerializerSettings();
+        settings ??= new JsonSerializerSettings()
+        {
+            Formatting = Formatting.None
+        };
 
-        if (!_settings.Converters.OfType<StringEnumConverter>().Any())
-            _settings.Converters.Add(new StringEnumConverter());
+        if (!settings.Converters.OfType<StringEnumConverter>().Any())
+            settings.Converters.Add(new StringEnumConverter());
+
+        _serializer = JsonSerializer.CreateDefault(settings);
     }
 
     public override string Serialize(IButtplugMessage message) => Serialize(new[] { message });
     public override string Serialize(IEnumerable<IButtplugMessage> messages)
     {
-        var serializer = JsonSerializer.CreateDefault(_settings);
-        var array = new JArray(messages.Select(ToJObject).ToArray());
-        return JsonConvert.SerializeObject(array, Formatting.None, _settings);
+        var token = CreateJToken(messages);
+
+        using var stringWriter = new StringWriter(new StringBuilder(256), CultureInfo.InvariantCulture);
+        using var jsonTextWriter = new JsonTextWriter(stringWriter)
+        {
+            Formatting = _serializer.Formatting
+        };
+
+        _serializer.Serialize(jsonTextWriter, token, null);
+        return stringWriter.ToString();
+    }
+
+    internal JToken CreateJToken(IButtplugMessage message) => CreateJToken(new[] { message });
+    internal JToken CreateJToken(IEnumerable<IButtplugMessage> messages)
+    {
+        return new JArray(messages.Select(ToJObject).ToArray());
 
         JObject ToJObject(IButtplugMessage message)
-            => new() { [GetMessageName(message)] = JObject.FromObject(message, serializer)! };
+            => new() { [GetMessageName(message)] = JObject.FromObject(message, _serializer)! };
     }
 
     public override IEnumerable<IButtplugMessage> Deserialize(string json)
@@ -32,7 +52,6 @@ public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
         using var stream = new StringReader(json);
         using var reader = new JsonTextReader(stream);
 
-        var serializer = JsonSerializer.CreateDefault(_settings);
         var array = JArray.Load(reader);
         foreach (var o in array.Children<JObject>())
         {
@@ -44,7 +63,7 @@ public class ButtplugNewtonsoftJsonConverter : ButtplugMessageJsonConverter
                 continue;
 
             var messageType = GetMessageType(property.Name);
-            if (messageObject.ToObject(messageType, serializer) is not IButtplugMessage message)
+            if (messageObject.ToObject(messageType, _serializer) is not IButtplugMessage message)
                 continue;
 
             yield return message;

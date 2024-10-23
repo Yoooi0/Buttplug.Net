@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -24,6 +24,7 @@ public class ButtplugClient(string name, IButtplugMessageJsonConverter converter
     public event EventHandler<ButtplugDevice>? DeviceAdded;
     public event EventHandler<ButtplugDevice>? DeviceRemoved;
     public event EventHandler<Exception>? UnhandledException;
+    public event EventHandler? ScanningFinished;
     public event EventHandler? Disconnected;
 
     public async Task ConnectAsync(Uri uri, CancellationToken cancellationToken)
@@ -132,6 +133,10 @@ public class ButtplugClient(string name, IButtplugMessageJsonConverter converter
                 {
                     UnhandledException?.Invoke(this, new ButtplugException($"Unable to find matching device for event \"{deviceRemoved}\""));
                 }
+            }
+            else if (message is ScanningFinishedButtplugMessage)
+            {
+                ScanningFinished?.Invoke(this, EventArgs.Empty);
             }
             else if (message is SensorReadingButtplugMessage sensorReading)
             {

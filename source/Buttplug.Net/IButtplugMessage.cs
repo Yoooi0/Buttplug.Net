@@ -41,6 +41,9 @@ internal record class StartScanningButtplugMessage() : AutoIncrementingButtplugM
 [ButtplugMessageName("StopScanning")]
 internal record class StopScanningButtplugMessage() : AutoIncrementingButtplugMessage;
 
+[ButtplugMessageName("ScanningFinished")]
+internal record class ScanningFinishedButtplugMessage() : IButtplugMessage { public uint Id => 0; }
+
 [ButtplugMessageName("RequestServerInfo")]
 internal record class RequestServerInfoButtplugMessage(string ClientName, uint MessageVersion = ButtplugClient.MessageVersion) : AutoIncrementingButtplugMessage;
 

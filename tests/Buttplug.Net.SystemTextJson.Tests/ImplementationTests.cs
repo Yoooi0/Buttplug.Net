@@ -1,6 +1,4 @@
-﻿using Buttplug.SystemTextJson;
-
-namespace Buttplug.NewtonsoftJson.Tests;
+﻿namespace Buttplug.SystemTextJson.Tests;
 
 public class ImplementationTests
 {
